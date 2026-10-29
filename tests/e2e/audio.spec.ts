@@ -100,6 +100,7 @@ test('empty writing is never released; input feedback and sensitivity are usable
   await expect.poll(() => page.getByRole('meter', { name: 'Microphone input level' }).getAttribute('aria-valuenow')).not.toBe('0')
   await page.waitForTimeout(1000)
   await expect(page.getByRole('button', { name: 'Begin again' })).toHaveCount(0)
+  await page.getByText('Microphone not responding?', { exact: true }).click()
   await page.getByRole('combobox', { name: 'Breath sensitivity' }).selectOption('gentle')
   await expect(page.getByRole('status', { name: 'Microphone status' })).toContainText('finding the room')
   await page.evaluate(`(${audioControls})().breath = false`)

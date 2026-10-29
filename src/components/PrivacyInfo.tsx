@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
+import { clearSpeechModelCache } from '../lib/speechCache'
 import { Icon } from './Icon'
 export function PrivacyInfo({ close, voiceBusy }: { close: () => void; voiceBusy: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const [cacheMessage, setCacheMessage] = useState('')
   const clearModel = async () => {
-    try { if ('caches' in window) await caches.delete('whisp-voice-model-v1'); setCacheMessage('Speech model cache cleared. Voice typing may download it again next time. Browser HTTP caching is managed separately in your browser settings.') }
-    catch { setCacheMessage('The model cache could not be cleared here. You can remove this site’s cached files in your browser settings.') }
+    const result = await clearSpeechModelCache()
+    setCacheMessage(result === 'failed' ? 'The model cache could not be cleared here. You can remove this site’s cached files in your browser settings.' : result === 'unavailable' ? 'This browser does not offer an app speech-model cache.' : 'Speech model cache cleared. Voice typing may download it again next time.')
   }
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null
@@ -30,8 +31,8 @@ export function PrivacyInfo({ close, voiceBusy }: { close: () => void; voiceBusy
       <p>Browsers control how memory is reclaimed and may retain a page in a back/forward cache. We can’t promise secure memory erasure. Refresh to start a fresh page; don’t rely on simply navigating away to destroy a browser-cached tab.</p>
       <h3>Can I speak instead of typing?</h3>
       <p>Choose Speak your thoughts, then Enable private voice typing. An English speech model runs on your device and appends recognized phrases to the page. Audio stays in temporary memory and is discarded after processing or cancellation. There are no audio uploads. Tears and unclear speech may not produce words; you can edit everything.</p>
-      <p>Voice typing loads about 70 MB of model/runtime files from this site on first use. Only these reusable speech assets may stay in the browser’s cache. Your writing and microphone audio are never put there. Music and breath release pause while you speak. Choose Finish voice typing, check the words, then blow gently to release.</p>
-      <button className="quiet-button" disabled={voiceBusy} onClick={() => void clearModel()}>Clear speech model cache</button>
+      <p>Voice typing loads about 70 MB of model/runtime files from this site on first use. Only these reusable speech assets use the app’s model cache. Whisp automatically clears that cache after a successful release or when you return to the stars. Your writing and microphone audio are never put there. A later voice session may need to download the model again. Browser-managed caches of ordinary app files are separate. Music and breath release pause while you speak. Choose Finish voice typing, check the words, then blow gently to release.</p>
+      <button className="quiet-button" disabled={voiceBusy} onClick={() => void clearModel()}>Clear speech model cache now</button>
       <p role="status">{voiceBusy ? 'Finish voice typing before clearing its model cache.' : cacheMessage}</p>
       <h3>How is the positive note chosen?</h3>
       <p>Whisp holds 100 original supportive quotes. Words on the page help choose a relevant theme locally, and a random note appears after release. This is a simple hint, not a reading of your emotions. We keep only quote IDs to avoid repeats, never a profile of you.</p>

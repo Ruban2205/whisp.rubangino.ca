@@ -1,8 +1,8 @@
 import { appendSpokenText } from './speech'
-export type Stage = 'landing' | 'entering' | 'writing' | 'releasing' | 'complete'
+export type Stage = 'landing' | 'entering' | 'writing' | 'releasing' | 'complete' | 'returning'
 export interface RitualState { stage: Stage; text: string; released: string | null }
 export type RitualEvent =
-  | { type: 'ENTER' | 'ARRIVE' | 'RELEASE' | 'RELEASE_DONE' | 'RELEASE_FAILED' | 'UNDO' | 'EXPIRE' | 'AGAIN' | 'HOME' }
+  | { type: 'ENTER' | 'ARRIVE' | 'RELEASE' | 'RELEASE_DONE' | 'RELEASE_FAILED' | 'UNDO' | 'EXPIRE' | 'AGAIN' | 'HOME' | 'HOME_DONE' }
   | { type: 'EDIT' | 'APPEND_SPEECH'; text: string }
 export const initialState: RitualState = { stage: 'landing', text: '', released: null }
 
@@ -19,7 +19,8 @@ export function ritualReducer(state: RitualState, event: RitualEvent): RitualSta
     case 'UNDO': return state.stage === 'complete' && state.released !== null ? { stage: 'writing', text: state.released, released: null } : state
     case 'EXPIRE': return { ...state, released: null }
     case 'AGAIN': return state.stage === 'complete' ? { stage: 'writing', text: '', released: null } : state
-    case 'HOME': return state.stage === 'complete' || (state.stage === 'writing' && !state.text) ? initialState : state
+    case 'HOME': return state.stage === 'complete' || (state.stage === 'writing' && !state.text) ? { stage: 'returning', text: '', released: null } : state
+    case 'HOME_DONE': return state.stage === 'returning' ? initialState : state
     default: return state
   }
 }

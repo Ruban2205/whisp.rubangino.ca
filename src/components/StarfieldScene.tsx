@@ -24,19 +24,21 @@ export function StarfieldScene({ stage, reduced }: { stage: Stage; reduced: bool
       time += dt / 1000
       ctx.clearRect(0, 0, width, height)
       const entering = current.current === 'entering'
+      const returning = current.current === 'returning'
       const writing = current.current === 'writing' || current.current === 'complete' || current.current === 'releasing'
       for (const star of stars) {
-        if (!reduced) star.z -= dt * (entering ? 0.00023 : 0.000006)
+        if (!reduced) star.z += dt * (returning ? 0.00018 : entering ? -0.00023 : -0.000006)
         if (star.z <= 0.04) star.z = 1
+        if (star.z > 1.1) star.z = 0.05
         const depth = 0.4 + star.z * 0.85
         const x = (star.x - 0.5) * width / depth + width / 2 + pointerX * (1 - star.z) * 16
         const y = (star.y - 0.5) * height / depth + height / 2 + pointerY * (1 - star.z) * 16
         const alpha = (0.25 + (Math.sin(time * 0.5 + star.phase) + 1) * 0.23) * (writing ? 0.45 : 1)
         ctx.fillStyle = `rgba(221,220,204,${alpha})`
         ctx.beginPath(); ctx.arc(x, y, star.radius / depth, 0, Math.PI * 2); ctx.fill()
-        if (entering && !reduced) {
+        if ((entering || returning) && !reduced) {
           ctx.strokeStyle = `rgba(225,216,190,${alpha * 0.3})`; ctx.lineWidth = star.radius * 0.65
-          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (x - width / 2) * 0.04, y + (y - height / 2) * 0.04); ctx.stroke()
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (x - width / 2) * (returning ? -0.025 : 0.04), y + (y - height / 2) * (returning ? -0.025 : 0.04)); ctx.stroke()
         }
       }
       if (!reduced && !document.hidden) frame = requestAnimationFrame(draw)

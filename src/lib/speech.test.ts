@@ -19,3 +19,23 @@ describe('private speech text and PCM', () => {
     expect(resamplePcm(output, 16000)).toBe(output)
   })
 })
+
+import { cleanSpeechTranscript, hasAudibleSpeechCandidate } from './speech'
+describe('non-speech annotation filtering', () => {
+  it('removes labels that should never become notebook writing', () => {
+    for (const label of ['[BLANK_AUDIO]', 'Blank Audio', 'blank_audio', '[Music]', '(soft music)', 'Music.', '[Silence] [Music]', '♪', '<|nospeech|>', '(crying)', '[applause]']) expect(cleanSpeechTranscript(label)).toBe('')
+  })
+  it('keeps meaningful speech, including sentences about music and crying', () => {
+    expect(cleanSpeechTranscript('Music helps me feel calm.')).toBe('Music helps me feel calm.')
+    expect(cleanSpeechTranscript('I am crying because I miss my friend.')).toBe('I am crying because I miss my friend.')
+    expect(cleanSpeechTranscript('[Music] I need a quiet moment. [BLANK_AUDIO]')).toBe('I need a quiet moment.')
+    expect(cleanSpeechTranscript('(I want to keep this thought.)')).toBe('(I want to keep this thought.)')
+    expect(appendSpokenText('Typed words about Music.', '[Blank Audio]')).toBe('Typed words about Music.')
+  })
+  it('rejects silent and extremely short PCM without suppressing audible speech', () => {
+    expect(hasAudibleSpeechCandidate(new Float32Array(16000))).toBe(false)
+    expect(hasAudibleSpeechCandidate(new Float32Array(16000).fill(0.0001))).toBe(false)
+    expect(hasAudibleSpeechCandidate(new Float32Array(500).fill(0.1))).toBe(false)
+    expect(hasAudibleSpeechCandidate(new Float32Array(16000).fill(0.02))).toBe(true)
+  })
+})

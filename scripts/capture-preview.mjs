@@ -27,9 +27,18 @@ try {
   await page.locator('.supportive-quote').evaluate(async el => { await Promise.all(el.getAnimations().map(animation => animation.finished)) })
   await page.screenshot({ path: 'docs/preview-completion.png', fullPage: true })
   await page.getByRole('button', { name: 'Return to the stars' }).click()
+  await page.locator('.returning-journey.receding').waitFor()
+  await page.waitForTimeout(900)
+  await page.screenshot({ path: 'docs/preview-return.png', fullPage: true })
   await page.getByRole('checkbox', { name: 'Microphone on when you enter' }).check()
   await page.setViewportSize({ width: 390, height: 844 })
   await page.screenshot({ path: 'docs/preview-mobile.png', fullPage: true })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.getByRole('checkbox', { name: 'Microphone on when you enter' }).uncheck()
+  await page.getByRole('button', { name: 'Enter your space' }).click()
+  await page.getByRole('textbox').fill('A little room to breathe.')
+  await page.getByRole('button', { name: 'Speak your thoughts' }).click()
+  await page.screenshot({ path: 'docs/preview-mobile-notebook.png', fullPage: true })
   // The sharing image is an original composition with the same self-hosted fonts.
   await page.setViewportSize({ width: 1200, height: 630 })
   await page.evaluate(() => {

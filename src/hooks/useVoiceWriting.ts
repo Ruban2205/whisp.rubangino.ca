@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { microphoneError } from '../lib/breath'
-import { trimSpeechOverlap, type SpeechWorkerMessage } from '../lib/speech'
+import { cleanSpeechTranscript, trimSpeechOverlap, type SpeechWorkerMessage } from '../lib/speech'
 export type VoiceStatus = 'idle' | 'loading' | 'requesting' | 'listening' | 'processing' | 'error'
 interface Job { id: number; audio: Float32Array; sampleRate: number; overlap: boolean }
 interface Capture { context?: AudioContext; stream?: MediaStream; source?: MediaStreamAudioSourceNode; node?: AudioWorkletNode; muted?: GainNode }
@@ -32,10 +32,14 @@ export function useVoiceWriting(onWords: (text: string) => void) {
     samples.current = 0; voiced.current = 0; quiet.current = 0; processing.current = false
     previousWords.current = ''; overlap.current = false; finishing.current = false
   }, [stopCapture])
-  const cancel = useCallback(() => {
+  const reset = useCallback(() => {
     discard()
-    if (mounted.current) { setStatus('idle'); setLevel(0); setMessage('Voice typing stopped. Words already on the page are still here.') }
+    if (mounted.current) { setStatus('idle'); setLevel(0); setMessage('') }
   }, [discard])
+  const cancel = useCallback(() => {
+    reset()
+    if (mounted.current) setMessage('Voice typing stopped. Words already on the page are still here.')
+  }, [reset])
   const enqueue = useCallback((keepOverlap = false) => {
     if (!samples.current || voiced.current < sampleRate.current * 0.18) {
       chunks.current.forEach(chunk => chunk.fill(0)); chunks.current = []; samples.current = 0; voiced.current = 0; quiet.current = 0; return
@@ -117,7 +121,7 @@ export function useVoiceWriting(onWords: (text: string) => void) {
           if (data.type === 'result') {
             const job = jobs.current.shift()
             if (!job || job.id !== data.id) return
-            const raw = data.text || ''
+            const raw = cleanSpeechTranscript(data.text || '')
             const text = job.overlap ? trimSpeechOverlap(previousWords.current, raw) : raw
             previousWords.current = raw.split(/\s+/).slice(-12).join(' ')
             if (text) callback.current(text)
@@ -173,6 +177,6 @@ export function useVoiceWriting(onWords: (text: string) => void) {
     document.addEventListener('visibilitychange', hidden)
     return () => { mounted.current = false; document.removeEventListener('visibilitychange', hidden); discard() }
   }, [cancel, discard])
-  return { status, message, level, start, finish, cancel, busy: status === 'loading' || status === 'requesting' || status === 'listening' || status === 'processing' }
+  return { status, message, level, start, finish, cancel, reset, busy: status === 'loading' || status === 'requesting' || status === 'listening' || status === 'processing' }
 }
 export type VoiceWriting = ReturnType<typeof useVoiceWriting>

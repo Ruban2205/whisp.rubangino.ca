@@ -32,7 +32,11 @@ try {
       const timeout = setTimeout(() => { worker.terminate(); reject(new Error('Local voice timeout')) }, 120000)
       worker.onerror = event => { clearTimeout(timeout); worker.terminate(); reject(new Error(event.message)) }
       worker.onmessage = event => {
-        if (event.data.type === 'ready') worker.postMessage({ type: 'transcribe', id: 1, audio, sampleRate: decoded.sampleRate }, [audio.buffer])
+        if (event.data.type === 'ready') worker.postMessage({ type: 'transcribe', id: 0, audio: new Float32Array(16000), sampleRate: 16000 })
+        if (event.data.type === 'result' && event.data.id === 0) {
+          if (event.data.text !== '') { clearTimeout(timeout); worker.terminate(); reject(new Error('Silence became writing')); return }
+          worker.postMessage({ type: 'transcribe', id: 1, audio, sampleRate: decoded.sampleRate }, [audio.buffer]); return
+        }
         if (event.data.type === 'result' || event.data.type === 'error') { clearTimeout(timeout); worker.terminate(); resolve(event.data) }
       }
       worker.postMessage({ type: 'load' })
@@ -40,5 +44,5 @@ try {
   }, { base64: fixture.toString('base64'), workerPath })
   if (result.type !== 'result' || !/country/i.test(result.text)) throw new Error(`Local speech verification failed: ${JSON.stringify(result)}`)
   if (external.length) throw new Error('Speech attempted an external request')
-  console.log('Real local speech model recognized the public test fixture under the production CSP, with no external requests. No physical microphone or cloud transcription was used.')
+  console.log('Real local speech model rejected silence and recognized the public test fixture under the production CSP, with no external requests. No physical microphone or cloud transcription was used.')
 } finally { await browser.close() }

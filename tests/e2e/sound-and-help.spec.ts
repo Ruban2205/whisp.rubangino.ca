@@ -71,7 +71,7 @@ test('Help explains memory, no storage, clearing, and microphone permission acce
   await expect(dialog).toContainText('20 seconds')
   await expect(dialog).toContainText('Refresh or close this page')
   await expect(dialog).toContainText('Neither mode uploads your audio')
-  await expect(dialog).toContainText('Only these reusable speech assets may stay')
+  await expect(dialog).toContainText('automatically clears that cache after a successful release')
   await page.evaluate(async () => { await (await caches.open('whisp-voice-model-v1')).put('/test-public-model', new Response('public model fixture')); await caches.open('unrelated-test-cache') })
   await page.getByRole('button', { name: 'Clear speech model cache' }).click()
   await expect(dialog.getByRole('status')).toContainText('Speech model cache cleared')
@@ -90,12 +90,13 @@ test('release wind, ink puffs, and completion chimes produce gentle non-silent a
     const modulePath = '/src/lib/soundscape.ts'
     const { Soundscape } = await import(modulePath)
     const results = []
-    for (const effect of ['release', 'completion', 'ink']) {
+    for (const effect of ['release', 'completion', 'ink', 'return']) {
       const context = new OfflineAudioContext(2, 16000 * 5, 16000)
       const score = new Soundscape(context)
       if (effect === 'release') score.playRelease()
       if (effect === 'completion') score.playCompletion()
       if (effect === 'ink') score.playInk()
+      if (effect === 'return') score.playReturn()
       const buffer = await context.startRendering()
       score.dispose()
       let squares = 0, peak = 0

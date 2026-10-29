@@ -1,0 +1,8 @@
+node_modules/
+dist/
+public/voice-model/
+public/voice-runtime/
+playwright-report/
+test-results/
+docs/preview-*.png
+tests/fixtures/*.wav

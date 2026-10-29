@@ -1,4 +1,4 @@
-export type SoundScene = 'quiet' | 'journey' | 'notebook'
+export type SoundScene = 'quiet' | 'journey' | 'notebook' | 'return'
 export const JOURNEY_MS = 8800
 const chords = [
   [130.81, 196, 246.94, 293.66, 329.63], // Cmaj9
@@ -80,6 +80,16 @@ export class Soundscape {
       this.note(frequency * 2.003, start + 0.02, 1.8, 0.008, this.entry)
     })
     this.note(65.41, now, duration + 1, 0.04, this.entry)
+  }
+
+  playReturn() {
+    if (this.disposed || this.scene === 'return') return
+    this.stopMusic(); this.scene = 'return'
+    const now = this.context.currentTime + 0.02
+    this.music.gain.setTargetAtTime(0, now, 0.4)
+    this.entry.gain.cancelScheduledValues(now); this.entry.gain.setValueAtTime(1, now)
+    ;[783.99, 659.25, 523.25, 392, 261.63, 130.81].forEach((frequency, index) => this.note(frequency, now + index * 0.32, 2.1, 0.025, this.entry))
+    this.breeze(now, 2.7, 0.18, 1000, 220)
   }
 
   startNotebook() {

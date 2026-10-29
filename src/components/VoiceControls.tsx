@@ -10,7 +10,7 @@ export function VoiceControls({ voice, start, finish }: { voice: VoiceWriting; s
     </button>
     {explain && !voice.busy && <div className="voice-explanation" role="region" aria-label="Private voice typing">
       <p>Speak at your own pace. English voice typing runs on your device; your audio is never uploaded. You can edit every word.</p>
-      <p>The first use loads about 70 MB of speech assets from this site. The model may stay cached for faster use; your words and audio are never saved. Tears or unclear speech may not become words.</p>
+      <p>Voice typing loads about 70 MB from this site. Its model cache clears automatically when you let go, so a later session may need another download. Your audio is never saved or uploaded. Unclear speech may not become words.</p>
       <button className="quiet-button" onClick={() => { setExplain(false); start() }}>Enable private voice typing <Icon name="arrow" size={16} /></button>
       <button className="text-button" onClick={() => setExplain(false)}>Not now</button>
     </div>}
@@ -19,6 +19,6 @@ export function VoiceControls({ voice, start, finish }: { voice: VoiceWriting; s
       {voice.status === 'listening' && <span className="voice-level" role="meter" aria-label="Voice input level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(voice.level * 100)}><span style={{ transform: `scaleX(${voice.level})` }} /></span>}
     </div>}
     {voice.busy && <button className="text-button voice-cancel" onClick={voice.cancel}>Cancel voice typing</button>}
-    {voice.status === 'listening' && <p className="voice-hint">Music and breath release pause while you speak. Choose Finish voice typing, check your words, then breathe them out.</p>}
+    {voice.status === 'listening' && <p className="voice-hint">When you’re done, choose Finish voice typing. Then take a slow breath and blow gently near the microphone. Music and breath release pause while you speak.</p>}
   </div>
 }

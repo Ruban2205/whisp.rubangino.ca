@@ -1,72 +1,110 @@
-# Whisp — A little space to let go
+<p align="center"><img src="public/favicon.svg" width="72" height="72" alt="Whisp logo" /></p>
 
-**Write it. Breathe it out. Let it go.** A free, private experience by [Ruban AI Labs](https://rubangino.ca), intended for `https://whisp.rubangino.ca`.
+# Whisp
 
-Step into a quiet universe, write or speak into a notebook, and let the actual shapes of your words drift away. An original supportive note appears after release. Whisp has no account, backend, analytics, cloud transcription, or saved drafts.
+**A little space to let go.**
 
-**The owner approved a local commit of the voice, quote, sound, homepage, and transition updates on October 29, 2026. GitHub push and production deployment require separate approval.**
+Whisp is a free, private online notebook for the thoughts you are ready to set down. Write or speak at your own pace, take a comfortable breath, and watch your words drift away. An original supportive note appears when the page clears.
 
-## Run locally
+Built by **[Ruban AI Labs](https://labs.rubangino.ca/)**. Production domain: **[whisp.rubangino.ca](https://whisp.rubangino.ca/)**.
 
-Use Node.js 22.12+ (22.x) or 24+. No `.env` file or credentials are needed.
+![Whisp's private notebook](docs/preview-notebook.png)
+
+## The experience
+
+- **Write without signing up.** A native, editable notebook supports multiline text, selection, paste, Unicode, and keyboard undo.
+- **Speak privately.** Optional English voice typing runs a self-hosted Whisper Tiny model on the visitor’s device. Recognized phrases append to the page; non-speech annotations are filtered.
+- **Release at your own pace.** Blow gently near the device’s microphone, confirm **Let it go**, or choose an intentional swipe. There is no need to blow hard.
+- **Find a little encouragement.** One of 100 original supportive notes appears after release, with local theme matching and randomized rotation.
+- **Enjoy a quiet atmosphere.** Cosmic journeys, paper-to-light transitions, original ambient music, and gentle wind effects share one sound control.
+- **Use the screen comfortably.** Layouts adapt to phones, tablets, desktop, landscape, and short viewports. Reduced motion, keyboard navigation, accessible controls, and a 20-second restore option are included.
+
+Microphone use is disclosed before entry and can be turned off. Sound starts after interaction and can be muted. Voice typing has a separate first-use explanation and enable action.
+
+## Privacy
+
+Whisp has no accounts, analytics, application backend, saved drafts, or cloud transcription.
+
+| Data | Handling |
+| --- | --- |
+| Writing | Temporary tab memory; never written to local/session storage, cookies, or a database. Refreshing or closing loses it. |
+| Released writing | Available through **Bring it back** for 20 seconds. Expiry, beginning again, or returning home drops the restore copy. |
+| Microphone audio | Breath is analyzed locally. Voice uses short in-memory audio segments, then clears/discards them and terminates its worker. Nothing is uploaded. |
+| Speech-model files | Public assets served from this site. The app-owned model cache clears automatically after successful release or return home; Help offers manual clearing. |
+| Supportive-note selection | Local keywords and quote IDs; no user profile or remote analysis. |
+
+Optional voice typing initially transfers about **70 MB** of public model/runtime assets. Clearing the cache can require another download. Ordinary browser caches, memory reclamation, browser extensions, operating-system behavior, and host access logs are outside the app’s control; secure memory erasure cannot be guaranteed.
+
+Speech recognition and breath detection can make mistakes. Every transcript is editable, and typing/manual release remain available. Whisp is a reflective experience, not medical care or a promise of relief.
+
+## Local development
+
+Use **Node.js 24 LTS** (`.nvmrc`), or another version supported by `package.json`.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open the printed Local URL, normally **http://127.0.0.1:5173/**. Microphones require localhost or valid HTTPS; a plain HTTP phone LAN URL generally cannot use them.
+Open **http://127.0.0.1:5173/**. No `.env` file, API key, database, or application secret is required. Microphone features need localhost or HTTPS.
 
-Before dev/build, `scripts/prepare-voice.mjs` prepares pinned public speech-model assets and the installed WASM runtime. The first run requires internet access to download the model from Hugging Face. Subsequent runs reuse local files. Generated model/runtime files are ignored by Git; the production build includes them in `dist/`. Runtime users load these assets from your own host, with **no remote model or inference fallback**.
+Before development and production builds, the preparation script downloads pinned public speech assets from Hugging Face and copies the installed WASM runtime. The first preparation requires internet access; subsequent runs reuse verified local files. Generated speech directories are excluded from Git and included in the production output.
+
+## Validation
 
 ```sh
-npm test                 # Unit tests
-npm run typecheck        # Strict TypeScript
+npm test                  # Unit tests
+npm run typecheck         # Strict TypeScript
 npx playwright install chromium firefox webkit
-npm run test:e2e         # Browser matrix, including phone emulations
-npm run test:e2e:ui      # Interactive browser tests
-npm run prepare:voice    # Prepare self-hosted speech assets explicitly
-npm run build           # Prepare assets + typecheck + build into dist/
-npm run preview         # Serve the compiled site, normally port 4173
-node scripts/verify-voice.mjs  # Real speech fixture + production CSP; preview must be running
-node scripts/verify-production.mjs # Production release and privacy smoke
+npm run test:e2e           # Desktop and phone-emulation browser matrix
+npm run build             # Prepare assets, typecheck, compile, pre-render, verify release
+npm run verify:release    # Recheck the existing dist/ artifact
+npm run preview           # Serve dist/ at http://127.0.0.1:4173/
 ```
 
-For installed Brave, set `WHISP_BRAVE_EXECUTABLE` to its executable path and run `npm run test:e2e -- --project=brave`. Automated tests use a fresh isolated profile, never your personal browsing profile. Reports are in `playwright-report/`; traces/failure captures are in `test-results/`. Both are ignored by Git.
+With the production preview running:
 
-## The experience
+```sh
+node scripts/verify-production.mjs
+node scripts/verify-voice.mjs
+```
 
-- A viewport-fitting invitation with refined copy, self-hosted fonts, original cosmic artwork, and quiet parallax. Extremely short/zoomed viewports can scroll to keep controls reachable.
-- A skippable 8.8-second journey. The notebook is mounted beneath the final glow, which morphs into its measured paper rectangle and dissolves to reveal the texture. The page remains in place at arrival.
-- A native multiline editor with handwriting, ruled paper, selection, paste, international text/IME, native undo/redo, and scrolling.
-- Microphone selected by default, disclosed beside Enter with an opt-out. Permission is requested on entry; local breath calibration begins in the notebook. Sustained breath, input feedback, Normal/Gentle sensitivity, and Recalibrate remain available.
-- **Speak your thoughts** offers optional private English voice typing. After the clear first-use note, the locally hosted Whisper Tiny model runs in a worker. Recognized phrases append to existing writing. Music and breath release pause while speaking. **Finish voice typing** flushes the last partial audio block, completes pending phrases, and re-enables breath when previously selected. Cancellation keeps words already written.
-- The voice model/runtime initially transfers roughly 70 MB from this site. Only public model assets may remain cached; Help can clear the named model cache. Voice accuracy varies, especially with crying, quiet speech, noise, accents, or fragmented speech. Tears are not words; every transcription is editable. No emotion diagnosis is attempted.
-- Confirmed **Let it go**, intentional opt-in swipe, and breath all use the same bounded ink-particle sequence. Up to 4,200 particles (1,800 on narrow/constrained devices) come from the actual visible letter shapes. Long entries animate their visible region while retaining the full entry for undo.
-- Original wind, staggered ink puffs, soft writing textures, and a completion chime accompany the page. Sound is on by default and begins on entry; mute applies to all music/effects. Notebook music softens during breath and pauses for voice typing. Hidden tabs stop microphone capture and sound.
-- **100 original supportive quotes** span ten themes. Modest local keyword matching chooses a relevant theme; an in-memory deck randomizes and avoids repetition. Unmatched entries can draw from all 100. This is not a reading of the user's emotions.
-- **Bring it back** restores the full writing for 20 seconds. Begin again, returning home, or expiration drops the undo copy. Reduced motion skips travel and uses quiet transitions; missing canvas gets a CSS fade.
+Set `WHISP_BROWSER=firefox` or `WHISP_BROWSER=webkit` to run the production smoke check in those engines.
 
-## Privacy and limits
+The checks cover production hydration/security policy, a readable homepage without JavaScript, release/restore, metadata, asset responses, storage, silence rejection, and real local recognition of a public speech fixture. For installed Brave, set `WHISP_BRAVE_EXECUTABLE` to its executable path when running Playwright. Browser tests use isolated profiles.
 
-Writing is in **temporary tab memory**, not local storage, session storage, cookies, a database, or a file. Refreshing/closing loses it. A browser warning is registered for unreleased drafts, but mobile browsers may omit it. Browsers control memory reclamation and back/forward caching; JavaScript cannot promise forensic erasure.
+GitHub Actions runs unit tests and the complete production build on pushes to `main` and pull requests. It does not deploy. Physical microphone, actual phone, virtual-keyboard, and assistive-technology checks remain part of manual release validation. See [Testing](docs/TESTING.md).
 
-Breath mode analyzes live sound without saving a recording. Optional voice mode buffers short PCM segments in memory, transcribes them locally, then drops/clears them. Cancelling/unmounting terminates the worker and input tracks. No writing or microphone audio is uploaded or put into model caches. A named browser cache may hold **public speech model files only**; normal HTTP caching is controlled by the browser/host. Browser extensions and the operating system are outside the app's control.
+## Production deployment
 
-Recognition and breath detection are fallible. The automated suite uses simulated microphone input and a public historical speech clip, including real inference in Brave/Chromium. Actual devices, accents, emotional speech, and physical blowing still require manual testing. Whisp is a symbolic ritual, not treatment or guaranteed relief.
+The application builds into **`dist/`**, including speech assets and a pre-rendered public homepage. The interactive notebook remains entirely in the browser; pre-rendering never includes user writing or recordings.
 
-## Implementation and verification
+| Setting | Value |
+| --- | --- |
+| Framework | Vite |
+| Install | `npm ci` |
+| Build | `npm run build` |
+| Output | `dist` |
+| Node.js | 24 LTS |
+| Canonical domain | `https://whisp.rubangino.ca/` |
 
-- [Architecture and trade-offs](docs/ARCHITECTURE.md)
-- [Tests and manual checklist](docs/TESTING.md)
-- [Current feature update](docs/FEATURE_UPDATES.md)
-- [Static deployment guide](docs/DEPLOYMENT.md)
-- [Licenses and model/fixture attribution](THIRD_PARTY_NOTICES.md)
+`vercel.json` includes build settings, security headers, immutable hashed-asset caching, and no-store headers for speech downloads. `_headers` supplies equivalents for compatible static hosts. No inference server, API key, or cross-origin model fallback is needed.
 
-The reducer owns writing state. `useVoiceWriting` owns capture, bounded jobs, final-block flushing, and cleanup; `speech.worker.ts` owns local inference. The separate breath hook owns detection. `quotes.ts` holds original messages and the local rotation policy. Canvas measures and rasterizes the editor's visible ink. `soundscape.ts` synthesizes the score and effects. No WebGL or animation-library dependency is needed.
+Choose a hosting plan appropriate to this project’s use and bandwidth. Vercel Hobby eligibility is restricted to personal, non-commercial use; free access for visitors alone does not establish eligibility. See the [deployment guide](docs/DEPLOYMENT.md) for plan details, HTTPS/DNS, and launch checks. Deployment is performed by the owner.
 
-## Deployment
+## Search and sharing
 
-`dist/` is a complete static site, including generated speech assets. Configure `whisp.rubangino.ca` with the chosen host's DNS target and valid HTTPS. Ensure it supports the model file sizes and serves `.wasm` and worker modules with correct MIME types. The included `_headers` declares same-origin workers, same-origin connections, and WASM compilation; hosts that ignore this file need equivalent configuration. No server function, API key, database, or cloud speech service is required.
+The public landing page is pre-rendered for crawlers and visitors, with production canonical metadata, Open Graph/Twitter cards, WebSite/WebApplication/Organization structured data, robots.txt, sitemap.xml, and SVG/ICO/PNG/Apple icons. No invented reviews, ratings, or search-ranking claims are included.
 
-**Do not push to GitHub or deploy without owner approval.** No automatic publishing workflow is installed.
+After launch, verify the domain in Google Search Console and submit `https://whisp.rubangino.ca/sitemap.xml`. See [SEO and launch verification](docs/SEO.md).
+
+## Project documentation
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Testing and device checklist](docs/TESTING.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [SEO and launch verification](docs/SEO.md)
+- [Feature updates](docs/FEATURE_UPDATES.md)
+- [Third-party licenses and attribution](THIRD_PARTY_NOTICES.md)
+
+**Developer:** [Ruban AI Labs](https://labs.rubangino.ca/) · **Source:** [Ruban2205/whisp.rubangino.ca](https://github.com/Ruban2205/whisp.rubangino.ca)

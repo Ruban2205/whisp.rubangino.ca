@@ -26,6 +26,7 @@ export function useAmbience(scene: SoundScene, listening: boolean, breathCandida
       const resumed = current.context.resume()
       current.score.setListening(desired.current.listening, desired.current.breathCandidate, desired.current.voiceTyping)
       if (next === 'journey') current.score.playJourney()
+      if (next === 'return') current.score.playReturn()
       if (next === 'notebook') current.score.startNotebook()
       await resumed
       if (audio.current !== current) return
@@ -44,6 +45,7 @@ export function useAmbience(scene: SoundScene, listening: boolean, breathCandida
     const current = audio.current
     if (!current) return
     current.score.setListening(listening, breathCandidate, voiceTyping)
+    if (scene === 'return') current.score.playReturn()
     if (scene === 'notebook') current.score.startNotebook()
     if (scene === 'journey') current.score.playJourney()
     if (scene === 'quiet' && current.score.scene !== 'quiet') { dispose(); setPlayback('waiting') }

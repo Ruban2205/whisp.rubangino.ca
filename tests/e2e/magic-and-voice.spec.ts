@@ -10,7 +10,7 @@ async function enter(page: Page) {
 }
 async function harness(page: Page, realModel = false) {
   await page.addInitScript(({ realModel }) => {
-    const control = { node: null as AudioWorkletNode | null, stops: 0, terminated: 0, loads: 0, defer: false, pending: 0, worker: null as FakeWorker | null, requests: 0 }
+    const control = { node: null as AudioWorkletNode | null, stops: 0, terminated: 0, loads: 0, defer: false, pending: 0, worker: null as FakeWorker | null, requests: 0, transcript: 'I feel worried and anxious, but I can take one step.' }
     Object.assign(window, { voiceHarness: control })
     const track = { readyState: 'live', stop() { if (this.readyState !== 'ended') control.stops++; this.readyState = 'ended' }, onended: null }
     const stream = { getTracks: () => [track], getAudioTracks: () => [track] }
@@ -32,7 +32,7 @@ async function harness(page: Page, realModel = false) {
         if (data.type === 'load') { control.loads++; queueMicrotask(() => this.onmessage?.({ data: { type: 'ready' } })) }
         if (data.type === 'transcribe') { control.pending = data.id; if (!control.defer) setTimeout(() => this.result(), 30) }
       }
-      result() { this.onmessage?.({ data: { type: 'result', id: control.pending, text: 'I feel worried and anxious, but I can take one step.' } }) }
+      result() { this.onmessage?.({ data: { type: 'result', id: control.pending, text: control.transcript } }) }
       terminate() { control.terminated++ }
     }
     function WorkerRouter(url: string | URL, options: WorkerOptions) {
@@ -169,4 +169,20 @@ test('real local speech model appends a public fixture into the editor', async (
   await expect(page.getByRole('textbox')).toHaveValue(/A note before speaking\..*country/i, { timeout: 90000 })
   await expect(page.getByRole('button', { name: 'Let it go', exact: true })).toBeEnabled()
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 })
+})
+
+
+test('voice annotations never enter the draft; meaningful speech and typed labels remain', async ({ page }) => {
+  await harness(page); await enter(page)
+  await page.getByRole('textbox').fill('Music. Blank Audio. These are my typed words.')
+  await page.evaluate('(window.voiceHarness).transcript = "[BLANK_AUDIO] (Music)"')
+  await enable(page); await feedPhrase(page)
+  await expect.poll(() => page.evaluate('(window.voiceHarness).pending')).toBeGreaterThan(0)
+  await page.getByRole('button', { name: 'Finish voice typing' }).click()
+  await expect(page.getByRole('button', { name: 'Speak your thoughts' })).toBeVisible()
+  await expect(page.getByRole('textbox')).toHaveValue('Music. Blank Audio. These are my typed words.')
+  await page.evaluate('(window.voiceHarness).transcript = "[Music] Music helps me feel calm. I am crying because I miss someone. [Silence]"')
+  await enable(page); await feedPhrase(page)
+  await page.getByRole('button', { name: 'Finish voice typing' }).click()
+  await expect(page.getByRole('textbox')).toHaveValue('Music. Blank Audio. These are my typed words. Music helps me feel calm. I am crying because I miss someone.')
 })
