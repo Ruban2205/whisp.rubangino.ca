@@ -23,5 +23,5 @@ try {
   const storage = await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length, cookie: document.cookie }))
   expect(storage).toEqual({ local: 0, session: 0, cookie: '' })
   expect(errors).toEqual([]); expect(external).toEqual([]); expect(failed).toEqual([])
-  console.log('Production smoke passed: mobile writing/release/undo, metadata/assets, no runtime errors, no third-party requests, and no persistent storage.')
+  console.log('Production smoke passed: mobile writing/release/undo, metadata/assets, no runtime errors, no third-party requests, and no persistent writing storage.')
 } finally { await browser.close() }

@@ -4,3 +4,6 @@ playwright-report/
 test-results/
 .DS_Store
 *.local
+# Reproducible speech assets are prepared before dev/build; never user recordings.
+public/voice-model/
+public/voice-runtime/

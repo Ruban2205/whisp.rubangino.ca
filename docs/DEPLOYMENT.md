@@ -1,6 +1,6 @@
 # Deploying whisp.rubangino.ca
 
-The baseline source was published to GitHub. The owner approved publishing the microphone, sound, entry, and Help updates to GitHub on October 29, 2026. Production deployment is still pending separate approval. These deployment instructions are not actions already performed.
+The baseline source was published to GitHub. A local commit of the voice, quotes, sound-effects, homepage, and portal updates is approved. Their GitHub push still requires separate approval. Production deployment is still pending separate approval. These deployment instructions are not actions already performed.
 
 ## Prepare the static release
 
@@ -30,7 +30,7 @@ The canonical URL, Open Graph URL/image, robots.txt, and sitemap.xml already use
 Hosts supporting the `_headers` format can use the included file. Verify response headers after publishing; some hosts silently ignore this file. For other hosts, configure equivalents:
 
 ```text
-Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'none'
+Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'none'
 Permissions-Policy: microphone=(self), camera=(), geolocation=()
 Referrer-Policy: strict-origin-when-cross-origin
 X-Content-Type-Options: nosniff
@@ -49,3 +49,13 @@ Inline styles are needed for the live breath/swipe progress indicators. Inline s
 - Confirm no writing or audio requests appear in the Network panel. Hosting access logs are separate; the host may collect IP addresses and request metadata, so review its configuration and retention.
 - Confirm `/og-image.png`, `/favicon.svg`, `/robots.txt`, and `/sitemap.xml` return 200.
 - Keep the prior deploy available for rollback. Version the source only after user approval to push.
+
+## Self-hosted voice assets
+
+The build now runs `scripts/prepare-voice.mjs` first. Give the build environment network access to download the pinned public model from Hugging Face; it needs no token. Generated `public/voice-model/` and `public/voice-runtime/` directories are ignored by Git and reconstructed before dev/build. Do not omit them from `dist/` or from a static upload.
+
+The q8 decoder is approximately 31 MB; ensure the host allows individual static assets of that size. Voice typing transfers roughly 70 MB on first use, separate from the small default application. These are public model/runtime assets, never recordings. All runtime requests remain on the site's origin.
+
+Serve `.wasm` as `application/wasm`, worker `.js`/`.mjs` as JavaScript, and model `.onnx` as binary. The CSP needs `script-src 'self' 'wasm-unsafe-eval'` and `worker-src 'self'`; ordinary JavaScript `unsafe-eval` is not needed. `connect-src 'self'` is retained. WASM inference uses a single worker thread and does not require COOP/COEP headers. The compiled speech worker is verified with the production CSP in a local browser test; actual host headers still require post-deployment verification.
+
+Cache public model files sensibly, revalidate config files when model revisions change, and preserve the named asset paths. Help clears the app's named model cache; browser/host HTTP caches are managed separately. No writing/audio should ever appear in HTTP request bodies, cache keys, URLs, or logs.

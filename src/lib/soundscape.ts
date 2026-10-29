@@ -12,6 +12,9 @@ export class Soundscape {
   private master: GainNode
   private music: GainNode
   private entry: GainNode
+  private effects: GainNode
+  private releaseUntil = 0
+  private lastInk = -1
   private reverb: ConvolverNode
   private wet: GainNode
   private sources = new Set<AudioScheduledSourceNode>()
@@ -25,6 +28,7 @@ export class Soundscape {
     this.master = context.createGain(); this.master.gain.value = 0.5
     this.music = context.createGain(); this.music.gain.value = 0
     this.entry = context.createGain(); this.entry.gain.value = 1
+    this.effects = context.createGain(); this.effects.gain.value = 1
     this.reverb = context.createConvolver()
     this.wet = context.createGain(); this.wet.gain.value = 0.32
     const impulse = context.createBuffer(2, Math.ceil(context.sampleRate * 3.5), context.sampleRate)
@@ -37,8 +41,8 @@ export class Soundscape {
       }
     }
     this.reverb.buffer = impulse
-    this.music.connect(this.master); this.entry.connect(this.master)
-    this.music.connect(this.reverb); this.entry.connect(this.reverb)
+    this.music.connect(this.master); this.entry.connect(this.master); this.effects.connect(this.master)
+    this.music.connect(this.reverb); this.entry.connect(this.reverb); this.effects.connect(this.reverb)
     this.reverb.connect(this.wet); this.wet.connect(this.master)
     this.master.connect(context.destination)
   }
@@ -56,11 +60,11 @@ export class Soundscape {
     tone.start(start); tone.stop(start + duration + 0.05)
   }
 
-  setListening(listening: boolean, breathCandidate = false) {
+  setListening(listening: boolean, breathCandidate = false, voiceTyping = false) {
     const now = this.context.currentTime
     this.master.gain.cancelScheduledValues(now)
     // Duck promptly during a candidate breath so speaker leakage cannot build a sustained trigger.
-    this.master.gain.setTargetAtTime(breathCandidate ? 0.008 : listening ? 0.24 : 0.5, now, breathCandidate ? 0.035 : 0.35)
+    this.master.gain.setTargetAtTime(voiceTyping ? 0 : breathCandidate ? 0.008 : listening ? 0.24 : 0.5, now, voiceTyping || breathCandidate ? 0.035 : 0.35)
   }
 
   playJourney(duration = JOURNEY_MS / 1000) {
@@ -104,12 +108,59 @@ export class Soundscape {
     }
   }
 
+  private breeze(start: number, duration: number, volume: number, from: number, to: number) {
+    if (this.disposed) return
+    const buffer = this.context.createBuffer(1, Math.ceil(this.context.sampleRate * 1.7), this.context.sampleRate)
+    const data = buffer.getChannelData(0)
+    let last = 0, seed = 47
+    for (let i = 0; i < data.length; i++) {
+      seed = seed * 16807 % 2147483647
+      last = last * 0.86 + (seed / 2147483647 * 2 - 1) * 0.14
+      data[i] = last
+    }
+    const air = this.context.createBufferSource(), filter = this.context.createBiquadFilter(), envelope = this.context.createGain()
+    air.buffer = buffer; air.loop = true
+    filter.type = 'bandpass'; filter.Q.value = 0.45
+    filter.frequency.setValueAtTime(from, start); filter.frequency.exponentialRampToValueAtTime(to, start + duration)
+    envelope.gain.setValueAtTime(0, start)
+    envelope.gain.linearRampToValueAtTime(volume, start + Math.min(0.7, duration * 0.24))
+    envelope.gain.exponentialRampToValueAtTime(0.00001, start + duration)
+    air.connect(filter); filter.connect(envelope); envelope.connect(this.effects)
+    this.sources.add(air)
+    air.onended = () => { air.disconnect(); filter.disconnect(); envelope.disconnect(); this.sources.delete(air) }
+    air.start(start); air.stop(start + duration + 0.03)
+  }
+
+  playRelease(duration = 4.65) {
+    const now = this.context.currentTime
+    if (this.disposed || now < this.releaseUntil) return
+    this.releaseUntil = now + duration
+    // A coherent bed of wind and smaller, staggered puffs follow the ink's lift and drift.
+    this.breeze(now + 0.03, duration * 0.9, 0.65, 180, 1150)
+    this.breeze(now + 0.25, duration * 0.72, 0.28, 650, 1900)
+    for (let i = 0; i < 5; i++) this.breeze(now + 0.35 + i * duration * 0.13, 0.65, 0.23, 900 + i * 100, 350)
+    ;[659.25, 783.99, 1046.5].forEach((frequency, index) => this.note(frequency, now + 1.2 + index * 0.45, 1.6, 0.013, this.effects))
+  }
+
+  playCompletion() {
+    const now = this.context.currentTime
+    this.note(523.25, now + 0.02, 2.7, 0.035, this.effects)
+    this.note(783.99, now + 0.16, 2.4, 0.018, this.effects)
+  }
+
+  playInk() {
+    const now = this.context.currentTime
+    if (now - this.lastInk < 0.45) return
+    this.lastInk = now
+    this.breeze(now + 0.01, 0.13, 0.06, 650, 300)
+  }
+
   private stopMusic() { if (this.timer) clearInterval(this.timer); this.timer = null }
   dispose() {
     if (this.disposed) return
     this.disposed = true; this.stopMusic()
     for (const source of this.sources) { source.onended = null; try { source.stop() } catch { /* Already stopped. */ } source.disconnect() }
     this.sources.clear()
-    this.entry.disconnect(); this.music.disconnect(); this.reverb.disconnect(); this.wet.disconnect(); this.master.disconnect()
+    this.entry.disconnect(); this.music.disconnect(); this.effects.disconnect(); this.reverb.disconnect(); this.wet.disconnect(); this.master.disconnect()
   }
 }

@@ -1,6 +1,6 @@
 # Implementation decisions
 
-Whisp is a static Vite + React + TypeScript application. No server, cookies, storage, analytics, AI APIs, runtime font services, or credentials are needed.
+Whisp is a static Vite + React + TypeScript application. No server, cookies, persistent draft storage, analytics, cloud AI APIs, runtime font services, or credentials are needed. Optional voice typing caches public model assets separately from writing.
 
 - An explicit reducer owns the ritual: landing → entering → writing → releasing → complete. Entry and release callbacks cannot advance an unrelated stage. Text remains intact until the animation reports completion. A failed animation restores editing.
 - Canvas 2D renders original cosmic artwork and particles. This keeps the bundle small and avoids WebGL contexts, shader compilation, and a second renderer fallback. CSS provides a quiet fallback when canvas is unavailable. CSS handles portal choreography; requestAnimationFrame handles the continuous effects. No animation library is needed.
@@ -13,3 +13,19 @@ Whisp is a static Vite + React + TypeScript application. No server, cookies, sto
 ## Performance budget
 
 Starfield: <= 220 stars on desktop / 95 on narrow screens or devices reporting <= 4 logical cores. Ink: <= 4,200 particles on desktop / 1,800 on narrow screens or those devices, sampled from a viewport-sized canvas. Canvas DPR capped at 1.5–2. No full-document rasterization or per-character live editor DOM. Hidden-page animation pauses. FPS is a target, not a verified device guarantee.
+
+## Voice, quotes, and seamless arrival
+
+The invitation uses 100dvh with header/footer included, retaining a 100vh fallback. Typography and spacing adapt to viewport height as well as width. Below 470px height, scrolling takes priority over clipping controls (including when zoom reduces the effective viewport).
+
+The final 1.6 seconds of the 8.8-second journey mount a read-only notebook under an opaque warm portal. `PortalTransition` measures its actual paper rectangle in a layout effect and animates the glow from the viewport into that rectangle, then fades the glow. The editor is armed only after arrival. Surrounding controls fade in separately. Skip uses a short quiet reveal. The travel layout retains its homepage dimensions to avoid a jump at the initial click.
+
+`useVoiceWriting` captures PCM through a same-origin AudioWorklet, never MediaRecorder or a remote speech API. It sends bounded phrase segments to a lazy module worker. A short silence ends a phrase; a 12-second boundary adds a small overlap, which is deduplicated when recognized text is appended. Backlog pressure pauses capture rather than silently discarding captured phrases. Finishing stops device input, flushes the last partial worklet block, and waits for queued recognition. Cancel drops pending buffers, terminates the worker, and preserves text already on the page. Generation guards reject late permission grants/results. Backgrounding stops input; captured pending phrases may finish locally. The worker is disposed when finished, releasing its model and input tensors.
+
+The speech pipeline is pinned to Transformers.js 3.8.1 for same-origin/local-only model compatibility. Its image-only `sharp` dependency is overridden to a patched release; it is not used in this browser app. ONNX uses WASM in a worker with one thread, so cross-origin isolation and cloud services are unnecessary. `env.allowRemoteModels = false`; model/runtime URLs are same-origin. No fallback sends audio elsewhere. The cache namespace `whisp-voice-model-v1` stores public model files only. Help deletes only that namespace. Browser HTTP caching remains separate.
+
+The model is English Whisper Tiny, converted to q8 ONNX by Xenova, pinned to revision `79fb389fc764e7c395bd330e9531d9d32ada7049`. Preparation downloads it once during development/build; generated assets are ignored by Git and included in the static output. A manifest records sizes/hashes. First voice use loads roughly 70 MB from the site. Accuracy/CPU/memory requirements are real limitations, especially on low-powered phones or emotional/unclear speech. Typed input always remains available. Runtime asset caching is distinct from draft persistence.
+
+The 100 quotes are original writing across ten themes. Matching is deliberately limited to local keywords, with bounded text scanning and no user profile. A deck retains only quote IDs for random selection without repetition. A quote is chosen when release is requested; no thought text is copied into quote metadata. It survives undo expiry without retaining the released writing.
+
+The score adds a dedicated effects bus: gentle writing texture, swept filtered noise for wind, staggered puffs following dissolution, and a completion chime. No text is passed into the audio system. All effects obey the one sound preference. Voice typing mutes output to avoid self-transcription; breath candidates duck music. Audio tests render effects offline and check non-silent, bounded output.

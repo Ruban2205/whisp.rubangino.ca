@@ -70,9 +70,39 @@ test('Help explains memory, no storage, clearing, and microphone permission acce
   await expect(dialog).toContainText('We do not put it in local storage')
   await expect(dialog).toContainText('20 seconds')
   await expect(dialog).toContainText('Refresh or close this page')
-  await expect(dialog).toContainText('never recorded or uploaded')
+  await expect(dialog).toContainText('Neither mode uploads your audio')
+  await expect(dialog).toContainText('Only these reusable speech assets may stay')
+  await page.evaluate(async () => { await (await caches.open('whisp-voice-model-v1')).put('/test-public-model', new Response('public model fixture')); await caches.open('unrelated-test-cache') })
+  await page.getByRole('button', { name: 'Clear speech model cache' }).click()
+  await expect(dialog.getByRole('status')).toContainText('Speech model cache cleared')
+  expect(await page.evaluate(() => caches.has('whisp-voice-model-v1'))).toBe(false)
+  expect(await page.evaluate(() => caches.has('unrelated-test-cache'))).toBe(true)
+  await page.evaluate(() => caches.delete('unrelated-test-cache'))
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
   await page.keyboard.press('Escape')
   await expect(help).toBeFocused()
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length, cookie: document.cookie }))).toEqual({ local: 0, session: 0, cookie: '' })
+})
+
+test('release wind, ink puffs, and completion chimes produce gentle non-silent audio', async ({ page }) => {
+  await page.goto('/')
+  const results = await page.evaluate(async () => {
+    const modulePath = '/src/lib/soundscape.ts'
+    const { Soundscape } = await import(modulePath)
+    const results = []
+    for (const effect of ['release', 'completion', 'ink']) {
+      const context = new OfflineAudioContext(2, 16000 * 5, 16000)
+      const score = new Soundscape(context)
+      if (effect === 'release') score.playRelease()
+      if (effect === 'completion') score.playCompletion()
+      if (effect === 'ink') score.playInk()
+      const buffer = await context.startRendering()
+      score.dispose()
+      let squares = 0, peak = 0
+      for (const value of buffer.getChannelData(0)) { squares += value * value; peak = Math.max(peak, Math.abs(value)) }
+      results.push({ effect, rms: Math.sqrt(squares / buffer.length), peak })
+    }
+    return results
+  })
+  for (const result of results) { expect(result.rms).toBeGreaterThan(0.00001); expect(result.peak).toBeLessThan(0.3) }
 })

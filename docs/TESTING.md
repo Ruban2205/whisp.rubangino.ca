@@ -11,21 +11,24 @@ Verified locally on October 29, 2026:
 | Check | Result |
 | --- | --- |
 | Strict TypeScript + production build | Passed |
-| Vitest | 17 / 17 passed |
-| Playwright | 174 / 174 passed in one final run across six projects, including installed Brave |
+| Vitest | 25 / 25 passed |
+| Playwright | 248 passed, 4 intentionally skipped out of 252 cases across six projects, including Brave |
 | Axe on landing, notebook, completion, and Help | No violations detected in the automated matrix |
 | Production Chromium mobile smoke | Passed: writing, release, undo, metadata and asset responses |
 | Production network/storage inspection | No third-party requests, no local/session storage, no cookies in the tested flow |
-| Visual captures | Desktop landing, notebook, release, phone landing, and sharing image inspected |
+| Visual captures | Homepage, portal-to-paper docking, notebook, release, positive-note completion, phone landing, and sharing image inspected |
 | Browser runtime errors in visual/production runs | None detected |
 | Git whitespace check | Passed |
-| Physical microphones, actual phones, screen readers | Pending manual testing |
+| Real speech inference | Public fixture recognized through the editor in Brave and Chromium; compiled worker also passed under the production CSP with zero external requests |
+| Physical microphones, emotional speech, actual phones, screen readers | Pending manual testing |
 
-The production JavaScript bundle is approximately 81.4 kB gzip, with CSS approximately 6.6 kB gzip; fonts and sharing assets are separate. This is a bundle-size observation, not a measured physical-device FPS claim.
+The production JavaScript bundle is approximately 88.9 kB gzip, with CSS approximately 8.3 kB gzip; fonts, sharing assets, and optional speech assets are separate. The lazy speech worker is about 887 kB before compression; first voice use loads roughly 70 MB of model/runtime files, with no user audio upload. This is a bundle-size observation, not a measured physical-device FPS claim.
 
 Re-run the production smoke check with `npm run preview` in one terminal and `node scripts/verify-production.mjs` in another. `WHISP_PREVIEW_URL` can select a different local preview origin. Static-host headers and TLS cannot be verified until an approved deployment exists.
 
-The updated suite additionally checks the default microphone preference and permission timing, opt-out across repeat sessions, simulated soft breath and low-frequency wind, input feedback, sensitivity/recalibration, default sound and mute, entry-to-notebook music transition, and offline audio rendering (audible output with bounded peaks, including ducking during breath). No physical microphone was used in automated tests.
+Four real-inference cases are explicitly skipped on Firefox/WebKit/mobile projects: the actual CPU model fixture is tested on desktop Brave and Chromium, while all six projects test capture orchestration with a simulated recognizer. These skips do not claim physical-device speech validation.
+
+The updated suite additionally checks the default microphone preference and permission timing, opt-out across repeat sessions, simulated soft breath and low-frequency wind, input feedback, sensitivity/recalibration, default sound and mute, entry-to-notebook music transition, and offline audio rendering (audible output with bounded peaks, including ducking during breath). No physical microphone was used in automated tests. The new suite also verifies 100 unique quotes, local theme matching and rotation, append-only speech edits, pending recognition/cancellation, model-cache clearing, homepage height, portal paper continuity, and offline wind/puff/chime output.
 
 ## Owner testing before GitHub push
 
@@ -72,4 +75,15 @@ Test separately on desktop Brave, desktop Chrome, desktop Safari, Firefox, Edge,
 
 ## Approval record
 
-Owner reports: **blowing failed in Brave on the baseline**. The detector and permission flow have been revised; physical re-test is pending. GitHub push for these updates: **explicitly approved by the owner on October 29, 2026**. Production deployment: **not authorized yet**. Physical microphone/device and assistive-technology checks remain pending unless the owner reports their results.
+Owner reports: **blowing failed in Brave on the baseline**. The detector and permission flow have been revised; physical re-test is pending. Local commit for the voice/quote/transition updates: **approved on October 29, 2026**. GitHub push: **awaiting approval**. Production deployment: **not authorized yet**. Physical microphone/device and assistive-technology checks remain pending unless the owner reports their results.
+
+
+## New-feature manual review
+
+- [ ] On localhost in Brave, enter the notebook and choose **Speak your thoughts**. Read the first-use download/cache note, then enable it. Verify that no words are lost from an existing typed draft.
+- [ ] Speak a few English phrases, pause naturally, and check the editable transcription. Try quiet speech, accents, pauses, and emotional speech without assuming perfect accuracy. Tears/non-speech should not be treated as reliable words.
+- [ ] Click **Finish voice typing**. Check that the last word completes, pending phrases finish, and breath listening returns if it was selected. Verify that talking during voice mode cannot accidentally release the page.
+- [ ] Blow gently or confirm manual release. Listen for wind and ink puffs, then watch a supportive quote appear. Try different topics and repeated releases to check relevance/rotation.
+- [ ] Cancel voice typing, deny permission, hide the tab, and interrupt model loading. Written text must survive; microphone tracks should stop. Check memory on repeated voice sessions, particularly on a phone.
+- [ ] In Help, verify the distinction between draft memory and public speech-model cache. Clear the model cache and try voice typing again. Do not expect local storage or a saved draft to exist.
+- [ ] Check the invitation fits your viewport with header/footer visible. Watch the full journey and verify that the warm glow resolves into the paper without a sudden scene swap. Check Skip and reduced motion too.

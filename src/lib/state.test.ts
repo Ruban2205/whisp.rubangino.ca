@@ -13,6 +13,11 @@ describe('ritual state machine', () => {
     const text = 'مرحبا 世界 👩🏽‍🚀 café\n\n'.repeat(4000)
     expect(reduce(writing(), { type: 'EDIT', text }).text).toBe(text)
   })
+  it('appends spoken text to current edits and ignores late speech after release starts', () => {
+    expect(reduce(writing('Typed first.'), { type: 'APPEND_SPEECH', text: 'Spoken next.' }).text).toBe('Typed first. Spoken next.')
+    const releasing = reduce(writing(), { type: 'RELEASE' })
+    expect(reduce(releasing, { type: 'APPEND_SPEECH', text: 'Late' })).toBe(releasing)
+  })
   it('rejects empty releases and edits during release', () => {
     const blank = writing(' \n ')
     expect(reduce(blank, { type: 'RELEASE' })).toBe(blank)
