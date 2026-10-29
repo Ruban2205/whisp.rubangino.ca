@@ -1,1 +1,1 @@
-# whisp.rubangino.ca
+# Project: WHISP — A Little Space to Let Go
