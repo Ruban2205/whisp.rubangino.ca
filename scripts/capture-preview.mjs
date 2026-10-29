@@ -9,6 +9,7 @@ try {
   if (!response?.ok()) throw new Error('Local preview did not return successfully')
   await page.evaluate(() => document.fonts.ready)
   await page.screenshot({ path: 'docs/preview-desktop.png', fullPage: true })
+  await page.getByRole('checkbox', { name: 'Microphone on when you enter' }).uncheck()
   await page.getByRole('button', { name: 'Enter your space' }).click()
   await page.getByRole('button', { name: 'Skip journey' }).click()
   await page.getByRole('textbox').fill('Today, I am setting down the things I cannot change.\n\nThere is room for a little stillness.\nThere is room to begin again.')

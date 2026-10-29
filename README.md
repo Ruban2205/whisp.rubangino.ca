@@ -4,7 +4,7 @@
 
 Enter a quiet universe, travel into an ivory notebook, write freely, and watch the actual shapes of your words drift away as ink particles. Use a sustained breath, a confirmed button press, or an explicitly enabled swipe. There is no account, backend, analytics, or persistent draft storage.
 
-**Source publication to GitHub is approved by the owner. Production deployment remains pending separate approval; real microphone and physical-device validation are still documented as manual checks.**
+**The owner approved publishing these microphone, music, entry, and Help updates to GitHub on October 29, 2026. Production deployment remains pending separate approval.**
 
 ## Run locally
 
@@ -31,14 +31,14 @@ Playwright starts the dev server automatically when one is not already running. 
 
 ## The experience
 
-- Original Canvas starfield, subtle parallax, orbital artwork, and a skippable 4.2-second portal journey.
+- Original Canvas starfield, subtle parallax, orbital artwork, and a skippable 8.8-second portal journey with an original cosmic chime.
 - Native multiline textarea, self-hosted handwriting font, ruled paper, international text, native undo/redo, selection, paste, and scrolling.
-- Local breath analysis with quiet calibration, spectral and temporal heuristics, visible progress, and explicit microphone controls. Permission is requested only after clicking **Use my breath** with text present.
+- Microphone selected by default, with a clear note and opt-out before entry. **Enter your space** requests browser permission; no microphone request occurs on page load. Analysis waits until the notebook opens, and release is armed only when writing is nonempty. The detector handles low-frequency turbulent wind as well as a soft hiss, rejects pitched/impulsive signals, and offers an input meter, Normal/Gentle breath sensitivity, and Recalibrate.
 - Confirmed **Let it go** button and opt-in horizontal swipe. Every method uses the same ink renderer.
 - A browser-measured text texture seeds up to 4,200 ink particles (1,800 on narrow screens). The wind progressively dissolves the visible writing over approximately 4.65 seconds. Long entries animate the current visible region; all text is retained until completion.
 - **Bring it back** restores the full entry for 20 seconds. **Begin again**, returning home, or expiration drops the saved text reference.
-- Reduced motion skips travel and replaces particle movement with a short fade. Canvas-unavailable browsers get a CSS fade. Ambient sound is off by default and synthesized locally.
-- Keyboard navigation, focus management, native privacy dialog, live microphone status, responsive layout, and bundled SEO/social assets.
+- Reduced motion skips travel and replaces particle movement with a short fade. Canvas-unavailable browsers get a CSS fade. Sound is on by default and starts on the entry click, in keeping with browser autoplay policies. An original shimmering chime leads into a slow, soothing notebook score of sustained chords and sparse bell notes. Everything is synthesized locally. Playback is quieter while listening and softens promptly during a candidate breath to reduce speaker feedback; it stops on hidden tabs and can be resumed explicitly.
+- Keyboard navigation, focus management, Help/privacy dialog explaining temporary tab memory (no local storage), live microphone status, responsive layout, and bundled SEO/social assets.
 
 ## Privacy and limits
 
@@ -46,7 +46,7 @@ Writing and audio stay within the browser tab. There are no runtime third-party 
 
 Refreshing or closing loses an unreleased draft. A native browser warning is registered for nonempty drafts, but browsers (especially mobile browsers) may omit it. No draft recovery storage is used. JavaScript cannot promise forensic memory wiping after an undo reference is dropped.
 
-Breath detection is a heuristic. Speech, fans, wind, distance, and microphone processing affect results; a sustained broadband sound can still resemble breath. This implementation is **not physically validated on actual microphones or phones**. Use the manual controls whenever listening is unreliable. Whisp offers a symbolic ritual, not treatment or guaranteed relief.
+Breath detection is a heuristic. Speech, fans, wind, distance, and microphone processing affect results; a sustained broadband sound can still resemble breath. The updated flow is tested in an installed Brave browser with simulated input, but is **not physically validated on actual microphones or phones**. Use the manual controls whenever listening is unreliable. Whisp offers a symbolic ritual, not treatment or guaranteed relief.
 
 Pen drawing and device-orientation input are intentionally omitted; native writing remains the reliable primary input. Canvas 2D is used instead of WebGL for a smaller bundle and broad compatibility.
 
@@ -57,7 +57,9 @@ Pen drawing and device-orientation input are intentionally omitted; native writi
 - [Static deployment guide](docs/DEPLOYMENT.md)
 - [Dependency/font notices](THIRD_PARTY_NOTICES.md)
 
-`src/lib/state.ts` owns the deterministic ritual; `src/lib/breath.ts` contains the signal heuristics; `src/hooks/useBreathDetection.ts` owns microphone resources. `src/lib/ink.ts` measures and rasterizes text; `src/components/InkRelease.tsx` choreographs the wind. Components and CSS own the paper and cosmic presentation.
+`src/lib/state.ts` owns the deterministic ritual; `src/lib/breath.ts` contains the signal heuristics; `src/hooks/useBreathDetection.ts` owns microphone resources. `src/lib/soundscape.ts` composes the entry and notebook score; `src/lib/ink.ts` measures and rasterizes text; `src/components/InkRelease.tsx` choreographs the wind. Components and CSS own the paper and cosmic presentation.
+
+For the optional installed-Brave project, set `WHISP_BRAVE_EXECUTABLE` to the Brave executable path and run `npm run test:e2e -- --project=brave`. Tests use a fresh isolated profile, not your personal browsing profile.
 
 The tests cover state guards, successful/failed releases, Unicode and long entries, particle budgets/origins, calibration and sustained detection, simulated microphone permission/cancellation/disconnect/visibility cleanup, expiry, undo, responsive widths from 320px to 1920px, and automated accessibility checks. Browser emulation is not physical-device validation. See the checklist for the exact latest test results and remaining manual checks.
 

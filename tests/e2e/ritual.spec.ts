@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 async function enter(page: Page, reduced = true) {
   if (reduced) await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
+  await page.getByRole('checkbox', { name: 'Microphone on when you enter' }).uncheck()
   await page.getByRole('button', { name: 'Enter your space' }).click()
   await expect(page.getByRole('textbox')).toBeVisible()
 }
@@ -58,18 +59,20 @@ test('long Unicode entries wrap, scroll, release and restore', async ({ page }) 
   await page.getByRole('button', { name: /Bring it back/ }).click()
   await expect(editor).toHaveValue(text)
 })
-test('no microphone permission is requested on load or writing; denial keeps the draft', async ({ page }) => {
+test('permission is requested only after the disclosed entry action; denial keeps the draft', async ({ page }) => {
   await page.addInitScript(() => {
     ;(window as unknown as { micCalls: number }).micCalls = 0
-    Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { value: async () => {
+    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async () => {
       ;(window as unknown as { micCalls: number }).micCalls++
       throw new DOMException('declined', 'NotAllowedError')
-    } })
+    } } })
   })
-  await enter(page)
-  await page.getByRole('textbox').fill('Keep this safe.')
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
   expect(await page.evaluate(() => (window as unknown as { micCalls: number }).micCalls)).toBe(0)
-  await page.getByRole('button', { name: 'Use my breath' }).click()
+  await page.getByRole('button', { name: 'Enter your space' }).click()
+  await page.getByRole('textbox').fill('Keep this safe.')
+  expect(await page.evaluate(() => (window as unknown as { micCalls: number }).micCalls)).toBe(1)
   await expect(page.getByRole('status', { name: 'Microphone status' })).toContainText('permission was declined')
   await expect(page.getByRole('textbox')).toHaveValue('Keep this safe.')
   await release(page)
@@ -142,7 +145,7 @@ test('full journey arrives without skipping and native undo works', async ({ pag
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await page.goto('/')
   await page.getByRole('button', { name: 'Enter your space' }).click()
-  await expect(page.getByRole('textbox')).toBeVisible()
+  await expect(page.getByRole('textbox')).toBeVisible({ timeout: 13000 })
   await expect(page.locator('.journey')).toHaveCount(0)
   const editor = page.getByRole('textbox')
   await editor.fill('A thought')

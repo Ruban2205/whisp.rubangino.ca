@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Dispatch } from 'react'
 import type { RitualEvent, RitualState } from '../lib/state'
-import { useBreathDetection } from '../hooks/useBreathDetection'
+import type { BreathDetection } from '../hooks/useBreathDetection'
+import type { BreathSensitivity } from '../lib/breath'
 import { InkRelease } from './InkRelease'
 import { ReleaseControls } from './ReleaseControls'
 import { Icon } from './Icon'
 
-export function NotebookExperience({ state, dispatch, reduced }: { state: RitualState; dispatch: Dispatch<RitualEvent>; reduced: boolean }) {
+export function NotebookExperience({ state, dispatch, reduced, mic, toggleMic, sensitivity, setSensitivity }: { state: RitualState; dispatch: Dispatch<RitualEvent>; reduced: boolean; mic: BreathDetection; toggleMic: () => void; sensitivity: BreathSensitivity; setSensitivity: (value: BreathSensitivity) => void }) {
   const editor = useRef<HTMLTextAreaElement>(null)
   const heading = useRef<HTMLHeadingElement>(null)
   const [swipeMode, setSwipeMode] = useState(false)
@@ -15,7 +16,6 @@ export function NotebookExperience({ state, dispatch, reduced }: { state: Ritual
   const [error, setError] = useState('')
   const swipeStart = useRef<{ x: number; y: number; id: number } | null>(null)
   const release = () => { mic.stop(); setSwipeMode(false); setError(''); dispatch({ type: 'RELEASE' }) }
-  const mic = useBreathDetection(release)
   const isWriting = state.stage === 'writing'
   const hasText = Boolean(state.text.trim())
   useEffect(() => {
@@ -28,7 +28,6 @@ export function NotebookExperience({ state, dispatch, reduced }: { state: Ritual
       editor.current?.parentElement?.style.setProperty('--paper-scroll', '0px')
     }
   }, [isWriting, state.stage])
-  useEffect(() => { if (!isWriting || !hasText) mic.stop() }, [isWriting, hasText, mic.stop])
   useEffect(() => {
     if (!swipeMode) return
     mic.stop()
@@ -82,7 +81,7 @@ export function NotebookExperience({ state, dispatch, reduced }: { state: Ritual
     <div className="notebook-controls">
       {isWriting && <>
         <div className={`microphone ${mic.active ? 'listening' : ''}`}>
-          <button className="mic-button" disabled={!hasText} aria-pressed={mic.active} onClick={() => { if (mic.active) mic.stop(); else { setSwipeMode(false); void mic.start() } }}><span className="mic-icon"><Icon name="mic" size={19} /></span>{mic.active ? 'Stop listening' : 'Use my breath'}</button>
+          <button className="mic-button" aria-pressed={mic.active} onClick={() => { setSwipeMode(false); toggleMic() }}><span className="mic-icon"><Icon name="mic" size={19} /></span>{mic.active ? 'Stop listening' : 'Use my breath'}</button>
           <p className="mic-description">Your microphone listens for your breath.<br />Audio stays on your device.</p>
         </div>
         <ReleaseControls disabled={!hasText} onRelease={release} swipeMode={swipeMode} setSwipeMode={setSwipeMode} />
@@ -95,6 +94,12 @@ export function NotebookExperience({ state, dispatch, reduced }: { state: Ritual
       {mic.message || error}
       {mic.status === 'ready' && <span className="breath-meter" role="progressbar" aria-label="Sustained breath" aria-valuenow={Math.round(mic.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ transform: `scaleX(${mic.progress})` }} /></span>}
     </div>
+    {isWriting && mic.active && <div className="breath-feedback">
+      <div className="input-level"><span>Microphone input</span><span className="input-level-track" role="meter" aria-label="Microphone input level" aria-valuenow={Math.round(mic.level * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ transform: `scaleX(${mic.level})` }} /></span></div>
+      <label>Sensitivity <select aria-label="Breath sensitivity" value={sensitivity} onChange={event => setSensitivity(event.target.value as BreathSensitivity)}><option value="normal">Normal</option><option value="gentle">Gentle breath</option></select></label>
+      <button className="text-button" disabled={mic.status === 'requesting' || mic.status === 'waiting'} onClick={() => void mic.start()}>Recalibrate</button>
+      <p>No need to blow hard. Try a gentle puff near the microphone. If the input meter stays still, check your device’s microphone setting.</p>
+    </div>}
     {state.stage === 'releasing' && editor.current && <InkRelease editor={editor.current} reduced={reduced} onDone={() => dispatch({ type: 'RELEASE_DONE' })} onError={() => { dispatch({ type: 'RELEASE_FAILED' }); setError('The breeze paused. Your words are still here. Please try again.') }} />}
   </section>
 }

@@ -1,5 +1,6 @@
-export function Icon({ name, size = 20 }: { name: 'wind' | 'sound' | 'mute' | 'arrow' | 'close' | 'lock' | 'mic' | 'back' | 'spark'; size?: number }) {
+export function Icon({ name, size = 20 }: { name: 'wind' | 'sound' | 'mute' | 'arrow' | 'close' | 'lock' | 'mic' | 'back' | 'spark' | 'help'; size?: number }) {
   const paths = {
+    help: <><circle cx="12" cy="12" r="9" /><path d="M9.5 8.5a2.5 2.5 0 1 1 4 2c-1.2.7-1.5 1.2-1.5 2.5m0 3h.01" /></>,
     wind: <><path d="M3 8h11a3 3 0 1 0-3-3M2 12h17a3 3 0 1 0-2-5M5 16h9a3 3 0 1 1-3 3" /></>,
     sound: <><path d="m11 4-6 5H2v6h3l6 5V4ZM15 8a6 6 0 0 1 0 8M18 4a11 11 0 0 1 0 16" /></>,
     mute: <><path d="m11 4-6 5H2v6h3l6 5V4ZM16 9l5 6m0-6-5 6" /></>,

@@ -1,6 +1,6 @@
 # Deploying whisp.rubangino.ca
 
-The owner has approved source publication to GitHub. Production deployment is still pending separate approval. These deployment instructions are not actions already performed.
+The baseline source was published to GitHub. The owner approved publishing the microphone, sound, entry, and Help updates to GitHub on October 29, 2026. Production deployment is still pending separate approval. These deployment instructions are not actions already performed.
 
 ## Prepare the static release
 
