@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://whisp.rubangino.ca/sitemap.xml

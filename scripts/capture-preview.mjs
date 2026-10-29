@@ -1,0 +1,37 @@
+import { chromium } from '@playwright/test'
+import fs from 'node:fs/promises'
+const browser = await chromium.launch()
+try {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 })
+  const errors = []
+  page.on('pageerror', error => errors.push(error.message))
+  const response = await page.goto('http://127.0.0.1:5173/')
+  if (!response?.ok()) throw new Error('Local preview did not return successfully')
+  await page.evaluate(() => document.fonts.ready)
+  await page.screenshot({ path: 'docs/preview-desktop.png', fullPage: true })
+  await page.getByRole('button', { name: 'Enter your space' }).click()
+  await page.getByRole('button', { name: 'Skip journey' }).click()
+  await page.getByRole('textbox').fill('Today, I am setting down the things I cannot change.\n\nThere is room for a little stillness.\nThere is room to begin again.')
+  await page.waitForTimeout(1300)
+  await page.screenshot({ path: 'docs/preview-notebook.png', fullPage: true })
+  await page.getByRole('button', { name: 'Let it go', exact: true }).click()
+  await page.getByRole('button', { name: 'Yes, let it go' }).click()
+  await page.waitForTimeout(2000)
+  await page.screenshot({ path: 'docs/preview-release.png', fullPage: true })
+  await page.getByRole('button', { name: 'Begin again' }).waitFor()
+  await page.getByRole('button', { name: 'Return to the stars' }).click()
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.screenshot({ path: 'docs/preview-mobile.png', fullPage: true })
+  // The sharing image is an original composition with the same self-hosted fonts.
+  await page.setViewportSize({ width: 1200, height: 630 })
+  await page.evaluate(() => {
+    document.body.innerHTML = `<div class="sharing-art"><div class="sharing-orbit"></div><p class="sharing-kicker">A LITTLE SPACE TO LET GO</p><div class="sharing-wordmark">Whisp<span>✧</span></div><p class="sharing-line">Write it. Breathe it out. Let it go.</p><p class="sharing-credit">A FREE EXPERIENCE BY RUBAN AI LABS</p></div>`
+    const style = document.createElement('style')
+    style.textContent = `.sharing-art{position:relative;width:1200px;height:630px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#34494180,transparent 65%),#0b171d;color:#f1eee2}.sharing-art p{z-index:1}.sharing-kicker{font-size:10px;letter-spacing:4px;color:#b6c0ac;margin:0 0 5px}.sharing-wordmark{font-family:'Cormorant Garamond';font-size:186px;line-height:1.25;letter-spacing:-8px;position:relative}.sharing-wordmark span{font-family:Georgia;font-size:40px;position:absolute;right:-45px;top:38px;color:#d9c297;letter-spacing:0}.sharing-line{font-size:15px;color:#c1c8b8;letter-spacing:1px;margin:15px 0 80px}.sharing-credit{position:absolute;bottom:35px;font-size:9px;letter-spacing:2px;color:#a4b1a4}.sharing-orbit{position:absolute;width:620px;height:460px;border:1px solid #d9c29730;border-radius:50%;transform:rotate(-24deg) scaleY(.6);top:30px}`
+    document.head.append(style)
+  })
+  await page.screenshot({ path: 'public/og-image.png' })
+  await fs.writeFile('docs/browser-errors.json', JSON.stringify(errors, null, 2) + '\n')
+  if (errors.length) throw new Error(JSON.stringify(errors))
+  console.log('Desktop, notebook, release, mobile, and Open Graph captures written. No browser runtime errors.')
+} finally { await browser.close() }
