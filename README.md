@@ -19,7 +19,7 @@ Built by **[Ruban AI Labs](https://labs.rubangino.ca/)**. Production domain: **[
 - **Enjoy a quiet atmosphere.** Cosmic journeys, paper-to-light transitions, original ambient music, and gentle wind effects share one sound control.
 - **Use the screen comfortably.** Layouts adapt to phones, tablets, desktop, landscape, and short viewports. Reduced motion, keyboard navigation, accessible controls, and a 20-second restore option are included.
 
-Microphone use is disclosed before entry and can be turned off. Sound starts after interaction and can be muted. Voice typing has a separate first-use explanation and enable action.
+Microphone use is disclosed before entry and can be turned off. Sound starts after interaction and can be muted. Voice typing has a separate first-use explanation and enable action. A blocked microphone request opens a clear settings-help dialog with a retry and a way to keep writing without microphone access; the app does not reload or discard the draft.
 
 ## Privacy
 
@@ -102,6 +102,7 @@ After launch, verify the domain in Google Search Console and submit `https://whi
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Testing and device checklist](docs/TESTING.md)
+- [Microphone access and recovery](docs/MICROPHONE_ACCESS.md)
 - [Deployment](docs/DEPLOYMENT.md)
 - [SEO and launch verification](docs/SEO.md)
 - [Feature updates](docs/FEATURE_UPDATES.md)

@@ -24,6 +24,7 @@ try {
   for (const asset of ['/favicon.svg', '/favicon.ico', '/favicon-48.png', '/apple-touch-icon.png', '/icon-192.png', '/icon-512.png', '/site.webmanifest', '/og-image.png', '/robots.txt', '/sitemap.xml']) {
     expect((await page.request.get(`${baseURL}${asset}`)).status()).toBe(200)
   }
+  await page.getByRole('checkbox', { name: 'Microphone on when you enter' }).uncheck()
   await page.getByRole('button', { name: 'Enter your space' }).click()
   await page.getByRole('textbox').fill('A production smoke test.\n世界 🌙')
   await page.getByRole('button', { name: 'Let it go', exact: true }).click()

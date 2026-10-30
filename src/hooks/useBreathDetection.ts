@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isMicrophonePermissionError } from '../lib/microphonePermission'
 import { BreathGate, defaultBreathConfig, gentleBreathConfig, extractFeatures, microphoneError, type BreathSensitivity } from '../lib/breath'
 export type MicStatus = 'inactive' | 'requesting' | 'waiting' | 'calibrating' | 'ready' | 'error'
-interface Options { calibrate: boolean; armed: boolean; sensitivity: BreathSensitivity }
+interface Options { calibrate: boolean; armed: boolean; sensitivity: BreathSensitivity; onPermissionDenied?: () => void }
 export function useBreathDetection(onBreath: () => void, options: Options) {
   const [status, setStatus] = useState<MicStatus>('inactive')
   const [message, setMessage] = useState('')
@@ -83,7 +84,10 @@ export function useBreathDetection(onBreath: () => void, options: Options) {
         } catch (error) { fail(microphoneError(error)) }
       }
       resources.current.frame = requestAnimationFrame(tick)
-    } catch (error) { fail(microphoneError(error)) }
+    } catch (error) {
+      if (current() && isMicrophonePermissionError(error)) settings.current.onPermissionDenied?.()
+      fail(microphoneError(error))
+    }
   }, [dispose, stop])
   useEffect(() => {
     mounted.current = true

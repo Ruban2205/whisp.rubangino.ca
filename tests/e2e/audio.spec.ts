@@ -123,7 +123,7 @@ test('microphone opt-out is respected across entry and beginning again', async (
   expect(await page.evaluate(`(${audioControls})().calls`)).toBe(0)
 })
 test('undo expires from application state after twenty seconds', async ({ page }) => {
-  await write(page)
+  await mockMicrophone(page); await write(page)
   await page.getByRole('button', { name: 'Let it go', exact: true }).click()
   await page.getByRole('button', { name: 'Yes, let it go' }).click()
   await expect(page.getByRole('button', { name: /Bring it back/ })).toBeVisible()

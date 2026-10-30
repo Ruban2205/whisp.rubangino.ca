@@ -111,3 +111,9 @@ The source release includes pre-rendered landing HTML, safe React hydration with
 The production dependency audit reports zero known vulnerabilities at verification time. GitHub Actions is configured for unit/build validation with read-only repository permissions and no deployment job. Its remote result is separate from the locally executed checks.
 
 Final production-preparation results: **29 unit tests passed; 320 browser checks passed with four intentional real-inference skips; production smoke passed in Chromium, Firefox, and WebKit; compiled local speech under CSP passed; production dependency audit found zero known vulnerabilities.** No production deployment has been performed.
+
+## Microphone permission recovery — October 30, 2026
+
+Owner-reviewed follow-up approved for local commit on main: **34 unit tests passed; full browser matrix 380 passed with four intentional real-inference skips out of 384 cases.** The permission dialog passed accessibility checks, draft/focus preservation, breath and voice retries, opt-out through repeat sessions, unsupported permission queries, stale-denial cancellation, and compact/landscape layout checks across six profiles. Compiled recovery passed under production CSP in Chromium, Firefox, and WebKit. The final Safari-specific instructions were also rechecked across all six profiles. Build/typecheck and release artifact checks passed.
+
+These cases simulate browser errors and permission changes. Real iPhone/Android Settings recovery is an owner device check. The owner approved a local commit on main on October 30, 2026. This follow-up has not been pushed or deployed. See [Microphone access and recovery](MICROPHONE_ACCESS.md) for the research, behavior, and manual steps.

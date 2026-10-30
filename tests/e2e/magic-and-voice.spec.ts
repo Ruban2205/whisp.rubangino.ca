@@ -12,6 +12,7 @@ async function harness(page: Page, realModel = false) {
   await page.addInitScript(({ realModel }) => {
     const control = { node: null as AudioWorkletNode | null, stops: 0, terminated: 0, loads: 0, defer: false, pending: 0, worker: null as FakeWorker | null, requests: 0, transcript: 'I feel worried and anxious, but I can take one step.' }
     Object.assign(window, { voiceHarness: control })
+    Object.defineProperty(navigator, 'permissions', { configurable: true, value: { query: async () => ({ state: 'prompt' }) } })
     const track = { readyState: 'live', stop() { if (this.readyState !== 'ended') control.stops++; this.readyState = 'ended' }, onended: null }
     const stream = { getTracks: () => [track], getAudioTracks: () => [track] }
     Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async () => { control.requests++; track.readyState = 'live'; return stream } } })

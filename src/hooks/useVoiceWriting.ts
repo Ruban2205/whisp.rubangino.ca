@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isMicrophonePermissionError, microphonePermissionIsDenied } from '../lib/microphonePermission'
 import { microphoneError } from '../lib/breath'
 import { cleanSpeechTranscript, trimSpeechOverlap, type SpeechWorkerMessage } from '../lib/speech'
 export type VoiceStatus = 'idle' | 'loading' | 'requesting' | 'listening' | 'processing' | 'error'
 interface Job { id: number; audio: Float32Array; sampleRate: number; overlap: boolean }
 interface Capture { context?: AudioContext; stream?: MediaStream; source?: MediaStreamAudioSourceNode; node?: AudioWorkletNode; muted?: GainNode }
 
-export function useVoiceWriting(onWords: (text: string) => void) {
+export function useVoiceWriting(onWords: (text: string) => void, onPermissionDenied?: () => void) {
   const [status, setStatus] = useState<VoiceStatus>('idle')
   const [message, setMessage] = useState('')
   const [level, setLevel] = useState(0)
   const callback = useRef(onWords); callback.current = onWords
+  const permissionDenied = useRef(onPermissionDenied); permissionDenied.current = onPermissionDenied
   const mounted = useRef(true), generation = useRef(0)
   const worker = useRef<Worker | null>(null), capture = useRef<Capture>({})
   const jobs = useRef<Job[]>([]), processing = useRef(false), listening = useRef(false), finishing = useRef(false)
@@ -94,6 +96,8 @@ export function useVoiceWriting(onWords: (text: string) => void) {
       try { context = new AudioContext({ sampleRate: 16000 }) } catch { context = new AudioContext() }
       capture.current.context = context
       const resumed = context.resume().then(() => true, () => false)
+      if (await microphonePermissionIsDenied()) throw new DOMException('Microphone permission denied', 'NotAllowedError')
+      if (!current()) return
       const engine = new Worker(new URL('../workers/speech.worker.ts', import.meta.url), { type: 'module', name: 'whisp-private-speech' })
       worker.current = engine
       sendNext.current = () => {
@@ -168,6 +172,7 @@ export function useVoiceWriting(onWords: (text: string) => void) {
       }
       setStatus('listening'); setMessage('Listening to your words. Pause naturally; they’ll appear a phrase at a time. English voice typing.')
     } catch (error) {
+      if (current() && isMicrophonePermissionError(error)) permissionDenied.current?.()
       fail(error instanceof DOMException ? microphoneError(error) : 'Private voice typing could not load. Your writing is safe. Please try again or keep typing.')
     }
   }, [discard, enqueue])

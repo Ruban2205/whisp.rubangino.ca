@@ -5,6 +5,8 @@ import { useAmbience } from './hooks/useAmbience'
 import { useVoiceWriting } from './hooks/useVoiceWriting'
 import { StarfieldScene } from './components/StarfieldScene'
 import { NotebookExperience } from './components/NotebookExperience'
+import { MicrophonePermissionHelp } from './components/MicrophonePermissionHelp'
+import type { MicrophoneHelpTarget } from './lib/microphonePermission'
 import { PrivacyInfo } from './components/PrivacyInfo'
 import { ReturnJourney } from './components/ReturnJourney'
 import { clearSpeechModelCache, type CacheClearStatus } from './lib/speechCache'
@@ -18,6 +20,8 @@ import { QuoteDeck, type SupportiveQuote } from './lib/quotes'
 export default function App() {
   const [state, dispatch] = useReducer(ritualReducer, initialState)
   const [privacy, setPrivacy] = useState(false)
+  const [microphoneHelp, setMicrophoneHelp] = useState<MicrophoneHelpTarget | null>(null)
+  const showMicrophoneHelp = useCallback((target: MicrophoneHelpTarget) => { setPrivacy(false); setMicrophoneHelp(target) }, [])
   const [docking, setDocking] = useState(false)
   const [quickDock, setQuickDock] = useState(false)
   const [homeVisible, setHomeVisible] = useState(false)
@@ -38,8 +42,9 @@ export default function App() {
     if (event.type === 'AGAIN' || event.type === 'UNDO') { setQuote(null); actions.current.restartMic() }
     dispatch(event)
   }, [])
-  const voice = useVoiceWriting(text => dispatch({ type: 'APPEND_SPEECH', text }))
+  const voice = useVoiceWriting(text => dispatch({ type: 'APPEND_SPEECH', text }), () => showMicrophoneHelp('voice'))
   const mic = useBreathDetection(() => ritualDispatch({ type: 'RELEASE' }), {
+    onPermissionDenied: () => showMicrophoneHelp('breath'),
     calibrate: state.stage === 'writing', armed: state.stage === 'writing' && Boolean(state.text.trim()) && !voice.busy, sensitivity,
   })
   const sound = useAmbience(state.stage === 'entering' && !docking ? 'journey' : state.stage === 'returning' ? 'return' : state.stage === 'landing' ? 'quiet' : 'notebook', mic.active, mic.progress > 0.04, voice.busy)
@@ -67,6 +72,13 @@ export default function App() {
   }
   const startVoice = () => { mic.stop(); void voice.start() }
   const finishVoice = () => { voice.finish(); if (micWanted) void mic.start() }
+  const continueWithoutMic = () => { setMicrophoneHelp(null); setMicWanted(false); mic.stop(); voice.reset() }
+  const retryMicrophone = () => {
+    const target = microphoneHelp
+    setMicrophoneHelp(null)
+    if (target === 'voice') startVoice()
+    else { setMicWanted(true); void mic.start() }
+  }
   const skipJourney = () => {
     if (docking) return
     setDocking(true); setQuickDock(true)
@@ -138,6 +150,7 @@ export default function App() {
       <p>Made with care by <a href="https://labs.rubangino.ca/" target="_blank" rel="noreferrer noopener">Ruban AI Labs <span aria-hidden="true">↗</span></a></p>
       <div className="footer-right"><span className="always-free">ALWAYS FREE.</span><button className="privacy-button" onClick={event => { event.currentTarget.focus(); setPrivacy(true) }}><Icon name="lock" size={13} /> Your words stay yours</button><button className="help-button" aria-label="Help and how your data is cleared" onClick={event => { event.currentTarget.focus(); setPrivacy(true) }}><Icon name="help" size={18} /><span>Help</span></button></div>
     </footer>
+    {microphoneHelp && <MicrophonePermissionHelp retry={retryMicrophone} continueWithout={continueWithoutMic} />}
     {privacy && <PrivacyInfo voiceBusy={voice.busy} close={() => setPrivacy(false)} />}
   </div>
 }

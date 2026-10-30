@@ -12,3 +12,5 @@ public/voice-runtime/
 .env
 .env.*
 !.env.example
+# Temporary local marketing asset kit.
+/branding/
