@@ -22,6 +22,9 @@ export function NotebookExperience({ state, dispatch, reduced, mic, toggleMic, s
   const release = () => { mic.stop(); setSwipeMode(false); setError(''); dispatch({ type: 'RELEASE' }) }
   const isWriting = state.stage === 'writing'
   const hasText = Boolean(state.text.trim())
+  const breathInstruction = sensitivity === 'gentle'
+    ? 'When you’re ready, take a slow breath in, then breathe out gently toward your screen.'
+    : 'When you’re ready, take a deep breath in, then blow toward your screen.'
   const goingHome = state.stage === 'returning'
   const showingCompletion = state.stage === 'complete' || (goingHome && Boolean(quote))
   useEffect(() => {
@@ -61,8 +64,8 @@ export function NotebookExperience({ state, dispatch, reduced, mic, toggleMic, s
     <div className="notebook-intro">
       <p className="eyebrow">NO NEED TO MAKE SENSE OF IT ALL</p>
       <h1>Let the page <em>hold it for you.</em></h1>
-      <p className="notebook-guide" id="ritual-guide">{voice.status === 'listening' ? 'Speak at your own pace. When you’re done, choose Finish voice typing. Then take a slow breath and blow gently toward your screen.' : voice.busy ? 'Your words are being prepared. You can keep writing here while you wait.' : 'Write or speak what’s on your mind. When you’re done, take a slow breath and blow gently toward your screen.'}</p>
-      <p className="guide-detail">A gentle puff near your device’s microphone is enough. You can also choose Let it go.</p>
+      <p className="notebook-guide" id="ritual-guide">{voice.busy && voice.status !== 'listening' ? 'Your words are being prepared. You can keep writing here while you wait.' : <>{voice.status === 'listening' ? 'Speak at your own pace. Choose Finish voice typing when you’re done.' : 'Write or speak what’s on your mind.'} {breathInstruction}</>}</p>
+      <p className="guide-detail">{sensitivity === 'gentle' ? 'A soft, steady breath is enough in Gentle mode.' : 'Let it out at your own pace.'} You can also choose Let it go.</p>
     </div>
     <div ref={paperRef} className={`notebook-paper ${state.stage === 'releasing' ? 'paper-releasing' : ''}`}>
       <div className="paper-topline" aria-hidden="true"><span>YOUR THOUGHTS, UNFILTERED.</span><Icon name="spark" size={16} /><span>JUST THIS MOMENT.</span></div>
@@ -109,7 +112,7 @@ export function NotebookExperience({ state, dispatch, reduced, mic, toggleMic, s
     {isWriting && mic.active && !voice.busy && <details className="breath-troubleshooting"><summary>Microphone not responding?</summary><div className="breath-feedback">
       <label>Sensitivity <select aria-label="Breath sensitivity" value={sensitivity} onChange={event => setSensitivity(event.target.value as BreathSensitivity)}><option value="normal">Normal</option><option value="gentle">Gentle breath</option></select></label>
       <button className="text-button" disabled={mic.status === 'requesting' || mic.status === 'waiting'} onClick={() => void mic.start()}>Recalibrate</button>
-      <p>No need to blow hard. Try a gentle puff near the microphone. If the input meter stays still, check your device’s microphone setting.</p>
+      <p>Follow the breathing guide above. Choose Gentle breath for a softer response. If the input meter stays still, check microphone access.</p>
     </div></details>}
     {state.stage === 'releasing' && editor.current && <InkRelease editor={editor.current} reduced={reduced} onDone={() => dispatch({ type: 'RELEASE_DONE' })} onError={() => { dispatch({ type: 'RELEASE_FAILED' }); setError('The breeze paused. Your words are still here. Please try again.') }} />}
   </section>

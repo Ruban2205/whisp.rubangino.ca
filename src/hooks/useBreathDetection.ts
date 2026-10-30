@@ -74,7 +74,9 @@ export function useBreathDetection(onBreath: () => void, options: Options) {
             if (!result.calibrating && lastStatus !== 'ready') { lastStatus = 'ready'; setStatus('ready') }
             if (now - lastUi > 80) {
               setProgress(result.progress); setLevel(result.level); lastUi = now
-              if (!result.calibrating) setMessage(!armed ? 'Microphone on. Write something first; an empty page cannot be released.' : result.progress > 0.05 ? 'A gentle breath… keep going for a moment.' : 'Listening. Blow gently near your device’s microphone for about a second.')
+              if (!result.calibrating) setMessage(!armed ? 'Microphone on. Write something first; an empty page cannot be released.' : result.progress > 0.05
+                ? sensitivity === 'gentle' ? 'A gentle breath… keep going for a moment.' : 'Breathe it out… let it go at your own pace.'
+                : sensitivity === 'gentle' ? 'Listening. Breathe out gently toward your screen.' : 'Listening. Take a deep breath in, then blow toward your screen.')
             }
           }
           resources.current.frame = requestAnimationFrame(tick)

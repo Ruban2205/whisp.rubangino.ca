@@ -17,7 +17,7 @@ async function mockMicrophone(page: Page, pending = false) {
         return { disconnect() {}, connect(analyser: AnalyserNode) {
           let seed = 31, filtered = 0
           analyser.getFloatTimeDomainData = (data: Float32Array) => {
-            const amplitude = controls.breath ? 0.014 : 0.001
+            const amplitude = controls.breath ? controls.wind ? 0.008 : 0.006 : 0.001
             for (let i = 0; i < data.length; i++) {
               seed = seed * 16807 % 2147483647
               const noise = seed / 2147483647 * 2 - 1
@@ -58,7 +58,7 @@ for (const wind of [false, true]) {
     expect(await page.evaluate(`(${audioControls})().calls`)).toBe(0)
     await page.getByRole('button', { name: 'Enter your space' }).click()
     await page.getByRole('textbox').fill('These words stay until I am ready.')
-    await expect(page.getByRole('status', { name: 'Microphone status' })).toContainText('Listening. Blow gently')
+    await expect(page.getByRole('status', { name: 'Microphone status' })).toContainText('Listening. Take a deep breath in')
     await expect(page.getByRole('textbox')).toHaveValue('These words stay until I am ready.')
     await page.evaluate(`(${audioControls})().wind = ${wind}; (${audioControls})().breath = true`)
     await expect(page.getByRole('button', { name: 'Begin again' })).toBeVisible()
@@ -101,7 +101,9 @@ test('empty writing is never released; input feedback and sensitivity are usable
   await page.waitForTimeout(1000)
   await expect(page.getByRole('button', { name: 'Begin again' })).toHaveCount(0)
   await page.getByText('Microphone not responding?', { exact: true }).click()
+  await expect(page.locator('#ritual-guide')).toContainText('deep breath in, then blow toward your screen')
   await page.getByRole('combobox', { name: 'Breath sensitivity' }).selectOption('gentle')
+  await expect(page.locator('#ritual-guide')).toContainText('breathe out gently toward your screen')
   await expect(page.getByRole('status', { name: 'Microphone status' })).toContainText('finding the room')
   await page.evaluate(`(${audioControls})().breath = false`)
   await page.getByRole('button', { name: 'Recalibrate' }).click()

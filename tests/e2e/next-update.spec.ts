@@ -47,7 +47,7 @@ test('cache failures are explained without blocking release or restoring words',
 
 test('empty notebook returns through reversed portal, clears model cache and restores home focus', async ({ page }) => {
   await enter(page); await seedCache(page)
-  await expect(page.locator('#ritual-guide')).toContainText('take a slow breath and blow gently')
+  await expect(page.locator('#ritual-guide')).toContainText('take a deep breath in, then blow toward your screen')
   await page.getByRole('textbox').fill('Protect an unfinished thought.')
   await expect(page.getByRole('button', { name: 'Whisp, return home' })).toHaveCount(0)
   await page.getByRole('textbox').fill('')

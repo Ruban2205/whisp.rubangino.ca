@@ -75,7 +75,7 @@ export function useVoiceWriting(onWords: (text: string) => void) {
       if (!mounted.current || generation.current !== ticket) return
       stopCapture(); enqueue(false); setLevel(0); finishing.current = false
       if (processing.current || jobs.current.length) { setStatus('processing'); setMessage('Finishing your last words…') }
-      else { discard(); setStatus('idle'); setMessage('Your words are on the page. Read them over, then take a gentle breath.') }
+      else { discard(); setStatus('idle'); setMessage('Your words are on the page. Read them over, then follow the breathing guide above.') }
     })
   }, [cancel, discard, enqueue, stopCapture])
   finishRef.current = finish
@@ -100,7 +100,7 @@ export function useVoiceWriting(onWords: (text: string) => void) {
         if (!current() || processing.current) return
         const job = jobs.current[0]
         if (!job) {
-          if (!listening.current) { discard(); setStatus('idle'); setMessage('Your words are on the page. Read them over, then take a gentle breath.') }
+          if (!listening.current) { discard(); setStatus('idle'); setMessage('Your words are on the page. Read them over, then follow the breathing guide above.') }
           return
         }
         processing.current = true

@@ -14,7 +14,7 @@ Built by **[Ruban AI Labs](https://labs.rubangino.ca/)**. Production domain: **[
 
 - **Write without signing up.** A native, editable notebook supports multiline text, selection, paste, Unicode, and keyboard undo.
 - **Speak privately.** Optional English voice typing runs a self-hosted Whisper Tiny model on the visitor’s device. Recognized phrases append to the page; non-speech annotations are filtered.
-- **Release at your own pace.** Blow gently near the device’s microphone, confirm **Let it go**, or choose an intentional swipe. There is no need to blow hard.
+- **Release at your own pace.** In Normal mode, take a deep breath in, then blow toward your screen. Choose Gentle breath for a softer response, confirm **Let it go**, or use an intentional swipe.
 - **Find a little encouragement.** One of 100 original supportive notes appears after release, with local theme matching and randomized rotation.
 - **Enjoy a quiet atmosphere.** Cosmic journeys, paper-to-light transitions, original ambient music, and gentle wind effects share one sound control.
 - **Use the screen comfortably.** Layouts adapt to phones, tablets, desktop, landscape, and short viewports. Reduced motion, keyboard navigation, accessible controls, and a 20-second restore option are included.

@@ -9,7 +9,9 @@ export interface AudioFeatures {
 }
 export type BreathSensitivity = 'normal' | 'gentle'
 export interface BreathConfig { calibrationMs: number; sustainedMs: number; confidenceThreshold: number; minimumRms: number; noiseMultiplier: number }
-export const defaultBreathConfig: BreathConfig = { calibrationMs: 1200, sustainedMs: 650, confidenceThreshold: 0.6, minimumRms: 0.0035, noiseMultiplier: 1.9 }
+// A small reduction in Normal’s amplitude requirement keeps the deep-breath ritual
+// while retaining its sustained, spectral and voicing checks.
+export const defaultBreathConfig: BreathConfig = { calibrationMs: 1200, sustainedMs: 650, confidenceThreshold: 0.6, minimumRms: 0.003, noiseMultiplier: 1.8 }
 export const gentleBreathConfig: BreathConfig = { ...defaultBreathConfig, sustainedMs: 750, minimumRms: 0.0018, noiseMultiplier: 1.5 }
 const clamp = (n: number) => Math.max(0, Math.min(1, n))
 

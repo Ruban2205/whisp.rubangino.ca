@@ -19,6 +19,6 @@ export function VoiceControls({ voice, start, finish }: { voice: VoiceWriting; s
       {voice.status === 'listening' && <span className="voice-level" role="meter" aria-label="Voice input level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(voice.level * 100)}><span style={{ transform: `scaleX(${voice.level})` }} /></span>}
     </div>}
     {voice.busy && <button className="text-button voice-cancel" onClick={voice.cancel}>Cancel voice typing</button>}
-    {voice.status === 'listening' && <p className="voice-hint">When you’re done, choose Finish voice typing. Then take a slow breath and blow gently near the microphone. Music and breath release pause while you speak.</p>}
+    {voice.status === 'listening' && <p className="voice-hint">When you’re done, choose Finish voice typing. Then follow the breathing guide above and blow toward your screen. Music and breath release pause while you speak.</p>}
   </div>
 }

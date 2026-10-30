@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { BreathGate, gentleBreathConfig, extractFeatures, microphoneError, type AudioFeatures } from './breath'
+import { BreathGate, gentleBreathConfig, extractFeatures, microphoneError, type AudioFeatures, type BreathConfig } from './breath'
 const quiet: AudioFeatures = { rms: 0.002, flatness: 0.5, highRatio: 0.65, lowRatio: 0.1, crest: 3, voicing: 0.12 }
 const breath: AudioFeatures = { ...quiet, rms: 0.05 }
-function calibrated() { const gate = new BreathGate(); for (let t = 0; t <= 1400; t += 20) gate.update(quiet, t); return gate }
+function calibrated(config?: BreathConfig) { const gate = new BreathGate(config); for (let t = 0; t <= 1400; t += 20) gate.update(quiet, t); return gate }
 describe('local breath heuristics', () => {
   it('requires quiet calibration and sustained broadband sound, and fires once', () => {
     const gate = calibrated()
@@ -12,8 +12,8 @@ describe('local breath heuristics', () => {
     expect(detected).toBe(1)
   })
   it('rejects impulses, voiced sound and isolated short noises', () => {
-    for (const feature of [{ ...breath, crest: 12 }, { ...breath, flatness: 0.03, highRatio: 0.08, lowRatio: 0.8, voicing: 0.95 }]) {
-      const gate = calibrated()
+    for (const config of [undefined, gentleBreathConfig]) for (const feature of [{ ...breath, crest: 12 }, { ...breath, flatness: 0.03, highRatio: 0.08, lowRatio: 0.8, voicing: 0.95 }]) {
+      const gate = calibrated(config)
       for (let t = 1420; t < 4000; t += 20) expect(gate.update(feature, t).detected).toBe(false)
     }
     const gate = calibrated()
@@ -44,11 +44,11 @@ describe('local breath heuristics', () => {
     expect(detected).toBe(true)
   })
   it('recognizes softer breath and provides a gentler setting for quiet microphones', () => {
-    for (const [config, amplitude] of [[undefined, 0.006], [gentleBreathConfig, 0.0025]] as const) {
+    for (const [config, amplitude] of [[undefined, 0.0033], [gentleBreathConfig, 0.0025]] as const) {
       const gate = new BreathGate(config)
       for (let t = 0; t <= 1400; t += 20) gate.update({ ...quiet, rms: 0.0006 }, t)
       let detected = false
-      for (let t = 1420; t < 3000; t += 20) detected ||= gate.update({ ...breath, rms: amplitude }, t).detected
+      for (let t = 1420; t < 3000; t += 20) detected ||= gate.update({ ...breath, rms: amplitude, flatness: 0.12, voicing: 0.2 }, t).detected
       expect(detected).toBe(true)
     }
   })
