@@ -16,6 +16,8 @@ Updated November 5, 2026. Error screens share Whisp's dark space, warm gold ligh
 
 An animation failure returns the words rather than marking them released. Successful fallbacks, such as a browser without canvas, can still complete quietly. Expected validation and cache-clear notices stay beside their controls.
 
+Startup resource checks are limited to the app's same-origin module scripts and stylesheets. Optional scripts injected by a host or extension must not hide a working application when CSP blocks them. The production Cloudflare analytics injection remains blocked; the fix does not allow analytics through the security policy. Disable that injection in the domain's Cloudflare configuration to remove the browser-console CSP warning.
+
 Recovery adds no storage, telemetry, writing upload, or automatic reload. A render failure can recover only the last committed snapshot, not a guarantee of every keystroke. Released writing is not retained by the boundary; the existing 20-second undo is separate. Refreshing/closing, a browser terminating the tab, or a failure of recovery itself can lose writing.
 
 ## Preview locally

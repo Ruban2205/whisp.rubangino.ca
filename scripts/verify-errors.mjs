@@ -55,6 +55,31 @@ try {
   expect(runtimeErrors).toEqual([])
   await page.close()
 
+  // Reproduce the host-injected analytics script seen on the production domain.
+  // CSP must block it without hiding the healthy application before hydration.
+  const optional = await browser.newPage({ reducedMotion: 'reduce' })
+  await optional.addInitScript(() => {
+    window.whispCspBlocks = 0
+    document.addEventListener('securitypolicyviolation', event => { if (event.blockedURI.startsWith('https://static.cloudflareinsights.com/')) window.whispCspBlocks++ })
+  })
+  await optional.route('**/*', async route => {
+    const response = await route.fetch()
+    const headers = { ...response.headers(), ...security }
+    if (route.request().isNavigationRequest() && new URL(route.request().url()).pathname === '/') {
+      const body = (await response.text()).replace('</head>', '<script src="https://static.cloudflareinsights.com/beacon.min.js" defer></script></head>')
+      await route.fulfill({ response, headers, body })
+    } else await route.fulfill({ response, headers })
+  })
+  await optional.goto(baseURL)
+  await expect(optional.getByRole('checkbox', { name: 'Microphone on when you enter' })).toBeVisible()
+  await expect(optional.locator('#startup-error')).toBeHidden()
+  await expect.poll(() => optional.evaluate(() => window.whispCspBlocks)).toBeGreaterThan(0)
+  await optional.getByRole('checkbox', { name: 'Microphone on when you enter' }).uncheck()
+  await optional.getByRole('button', { name: 'Enter your space' }).click()
+  await optional.getByRole('textbox').fill('A blocked optional script cannot hide my page.')
+  await expect(optional.getByRole('textbox')).toHaveValue('A blocked optional script cannot hide my page.')
+  await optional.close()
+
   for (const resource of ['script', 'stylesheet']) {
     const startup = await browser.newPage()
     await startup.route('**/*', async route => {
@@ -70,5 +95,5 @@ try {
     await expect(startup.getByRole('link', { name: 'Try this page again' })).toHaveAttribute('href', '')
     await startup.close()
   }
-  console.log(`${engine}: production no-JS public pages, genuine HTTP 404, absent preview/developer routes, static motion errors under CSP, and startup recovery after blocked script/stylesheet passed.`)
+  console.log(`${engine}: production no-JS public pages, genuine HTTP 404, absent preview routes, CSS motion, blocked optional analytics with usable writing, and real startup failure recovery passed.`)
 } finally { await browser.close() }

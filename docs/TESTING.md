@@ -149,3 +149,9 @@ The gallery and feature-preview routes are now development-only. Production emit
 - The Chromium production writing/release/undo smoke passed without runtime errors, external requests, or saved writing.
 
 The prior full regression record remains above; the full suite was not repeated for this build/routing-only change. Live Vercel status/header checks remain an owner post-deployment action. Use the development server on port 5173 for the design gallery; production preview on port 4173 deliberately returns 404 for it.
+
+## Live startup hotfix — November 5, 2026
+
+Release `1377032` deployed through the existing GitHub/Vercel integration. Live public pages returned 200, removed preview paths and a missing URL returned branded 404, and WASM had the expected MIME/no-store headers. A browser check then identified Cloudflare-injected analytics being blocked by CSP; the bootstrap incorrectly treated that optional script failure as a failed app startup.
+
+The bootstrap now limits resource failures to same-origin application modules/stylesheets. The CSP remains unchanged and external analytics stays blocked. Local compiled regression checks passed in Chromium, Firefox, and WebKit with an injected analytics script: the native CSP event confirms blocking, the homepage remains usable, and writing works. Genuine first-party script/stylesheet failure checks still show recovery. Build/typecheck and release checks passed. Live browser verification is repeated after the hotfix deploys; DNS/TLS/browser-owned errors remain outside app control.
