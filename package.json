@@ -28,8 +28,8 @@
     "privacy"
   ],
   "author": {
-    "name": "Ruban AI Labs",
-    "url": "https://labs.rubangino.ca/"
+    "name": "Ruban Gino Singh",
+    "url": "https://www.rubangino.ca/"
   },
   "type": "module",
   "bugs": {
@@ -63,5 +63,11 @@
     "@huggingface/transformers": {
       "sharp": "^0.35.5"
     }
-  }
+  },
+  "contributors": [
+    {
+      "name": "Ruban AI Labs",
+      "url": "https://labs.rubangino.ca/"
+    }
+  ]
 }

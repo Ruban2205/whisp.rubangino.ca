@@ -132,8 +132,9 @@ test('a missing device remains a device error rather than a false permission war
   await microphoneHarness(page); await open(page)
   await page.evaluate('(window.permissionHarness).error = "NotFoundError"')
   await page.getByRole('button', { name: 'Use my breath' }).click()
-  await expect(page.getByRole('status', { name: 'Microphone status' })).toContainText('No microphone was found')
+  await expect(page.getByRole('dialog', { name: 'The breeze couldn’t reach us.' })).toBeVisible()
   await expect(dialog(page)).toHaveCount(0)
+  await page.getByRole('button', { name: 'Keep writing', exact: true }).click()
   await page.getByRole('textbox').fill('Still usable.')
 })
 

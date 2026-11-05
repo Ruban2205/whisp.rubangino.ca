@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react'
 import { initialState, ritualReducer, type RitualEvent } from './lib/state'
 import { useReducedMotion } from './hooks/useReducedMotion'
 import { useAmbience } from './hooks/useAmbience'
 import { useVoiceWriting } from './hooks/useVoiceWriting'
 import { StarfieldScene } from './components/StarfieldScene'
 import { NotebookExperience } from './components/NotebookExperience'
+import { ErrorRecoveryDialog } from './components/ErrorRecoveryDialog'
+import type { RecoverableErrorKind } from './lib/errors'
 import { MicrophonePermissionHelp } from './components/MicrophonePermissionHelp'
 import type { MicrophoneHelpTarget } from './lib/microphonePermission'
 import { PrivacyInfo } from './components/PrivacyInfo'
@@ -17,8 +19,12 @@ import type { BreathSensitivity } from './lib/breath'
 import { JOURNEY_MS } from './lib/soundscape'
 import { QuoteDeck, type SupportiveQuote } from './lib/quotes'
 
-export default function App() {
-  const [state, dispatch] = useReducer(ritualReducer, initialState)
+const useDraftSnapshot = typeof window === 'undefined' ? useEffect : useLayoutEffect
+export default function App({ initialDraft = '', onDraftChange, interrupted = false }: { initialDraft?: string; onDraftChange?: (value: string) => void; interrupted?: boolean }) {
+  const [state, dispatch] = useReducer(ritualReducer, initialDraft ? { stage: 'writing', text: initialDraft, released: null } : initialState)
+  useDraftSnapshot(() => { onDraftChange?.(state.stage === 'writing' || state.stage === 'releasing' ? state.text : '') }, [state.stage, state.text, onDraftChange])
+  const [recovery, setRecovery] = useState<RecoverableErrorKind | null>(null)
+  const showRecovery = useCallback((kind: RecoverableErrorKind) => { setPrivacy(false); setRecovery(kind) }, [])
   const [privacy, setPrivacy] = useState(false)
   const [microphoneHelp, setMicrophoneHelp] = useState<MicrophoneHelpTarget | null>(null)
   const showMicrophoneHelp = useCallback((target: MicrophoneHelpTarget) => { setPrivacy(false); setMicrophoneHelp(target) }, [])
@@ -28,7 +34,7 @@ export default function App() {
   const [cacheStatus, setCacheStatus] = useState<CacheClearStatus | 'idle' | 'clearing'>('idle')
   const [quote, setQuote] = useState<SupportiveQuote | null>(null)
   const reduced = useReducedMotion()
-  const [micWanted, setMicWanted] = useState(true)
+  const [micWanted, setMicWanted] = useState(!initialDraft)
   const [sensitivity, setSensitivity] = useState<BreathSensitivity>('normal')
   const deck = useRef(new QuoteDeck())
   const paper = useRef<HTMLDivElement>(null)
@@ -42,12 +48,13 @@ export default function App() {
     if (event.type === 'AGAIN' || event.type === 'UNDO') { setQuote(null); actions.current.restartMic() }
     dispatch(event)
   }, [])
-  const voice = useVoiceWriting(text => dispatch({ type: 'APPEND_SPEECH', text }), () => showMicrophoneHelp('voice'))
+  const voice = useVoiceWriting(text => dispatch({ type: 'APPEND_SPEECH', text }), () => showMicrophoneHelp('voice'), () => showRecovery('voice'))
   const mic = useBreathDetection(() => ritualDispatch({ type: 'RELEASE' }), {
-    onPermissionDenied: () => showMicrophoneHelp('breath'),
+    onPermissionDenied: () => showMicrophoneHelp('breath'), onFailure: () => showRecovery('microphone'),
     calibrate: state.stage === 'writing', armed: state.stage === 'writing' && Boolean(state.text.trim()) && !voice.busy, sensitivity,
   })
-  const sound = useAmbience(state.stage === 'entering' && !docking ? 'journey' : state.stage === 'returning' ? 'return' : state.stage === 'landing' ? 'quiet' : 'notebook', mic.active, mic.progress > 0.04, voice.busy)
+  const sound = useAmbience(interrupted ? 'quiet' : state.stage === 'entering' && !docking ? 'journey' : state.stage === 'returning' ? 'return' : state.stage === 'landing' ? 'quiet' : 'notebook', mic.active, mic.progress > 0.04, voice.busy)
+  useEffect(() => { if (initialDraft) sound.pause() }, [initialDraft, sound.pause])
   actions.current = {
     release: () => {
       if (state.stage !== 'writing' || !state.text.trim() || voice.busy) return
@@ -79,6 +86,19 @@ export default function App() {
     if (target === 'voice') startVoice()
     else { setMicWanted(true); void mic.start() }
   }
+  const keepWriting = () => {
+    if (recovery === 'audio') sound.mute()
+    else { mic.stop(); voice.reset(); setMicWanted(false) }
+    setRecovery(null)
+  }
+  const retryRecovery = () => {
+    const kind = recovery; setRecovery(null)
+    if (kind === 'voice') startVoice()
+    else if (kind === 'audio') void sound.start()
+    else if (kind === 'microphone') { setMicWanted(true); void mic.start() }
+  }
+  useEffect(() => { if (interrupted) { mic.stop(); voice.cancel(); sound.pause(); setRecovery(null); setMicrophoneHelp(null); setPrivacy(false) } }, [interrupted, mic.stop, voice.cancel, sound.pause])
+  useEffect(() => { if (sound.playback === 'error') showRecovery('audio') }, [sound.playback, showRecovery])
   const skipJourney = () => {
     if (docking) return
     setDocking(true); setQuickDock(true)
@@ -142,14 +162,15 @@ export default function App() {
           <p className="private-caption"><Icon name="lock" size={12} /> Private by design. Free to use. Yours for a moment.</p>
         </div>
         <div className="landing-footnote" aria-hidden="true"><span className="tiny-star">✦</span><span>YOU DON’T HAVE TO CARRY EVERYTHING.</span></div>
-      </section> : <NotebookExperience state={state} dispatch={ritualDispatch} reduced={reduced} mic={mic} toggleMic={toggleMic} sensitivity={sensitivity} setSensitivity={setSensitivity} voice={voice} startVoice={startVoice} finishVoice={finishVoice} quote={quote} paperRef={paper} playInk={sound.playInk} cacheStatus={cacheStatus} />}
+      </section> : <NotebookExperience state={state} dispatch={ritualDispatch} reduced={reduced} mic={mic} toggleMic={toggleMic} sensitivity={sensitivity} setSensitivity={setSensitivity} voice={voice} startVoice={startVoice} finishVoice={finishVoice} quote={quote} paperRef={paper} playInk={sound.playInk} cacheStatus={cacheStatus} onReleaseFailure={() => showRecovery('release')} />}
       {state.stage === 'returning' && <ReturnJourney revealingHome={homeVisible} reduced={reduced} paper={paper} skip={() => ritualDispatch({ type: 'HOME_DONE' })} />}
       {state.stage === 'entering' && <PortalTransition docking={docking} quick={quickDock} reduced={reduced} paper={paper} skip={skipJourney} />}
     </main>
     <footer className="site-footer">
-      <p>Made with care by <a href="https://labs.rubangino.ca/" target="_blank" rel="noreferrer noopener">Ruban AI Labs <span aria-hidden="true">↗</span></a></p>
+      <p>By <a href="/about/" target="_blank" rel="noreferrer noopener">Ruban Gino Singh</a> · <a href="https://labs.rubangino.ca/" target="_blank" rel="noreferrer noopener">Ruban AI Labs <span aria-hidden="true">↗</span></a></p>
       <div className="footer-right"><span className="always-free">ALWAYS FREE.</span><button className="privacy-button" onClick={event => { event.currentTarget.focus(); setPrivacy(true) }}><Icon name="lock" size={13} /> Your words stay yours</button><button className="help-button" aria-label="Help and how your data is cleared" onClick={event => { event.currentTarget.focus(); setPrivacy(true) }}><Icon name="help" size={18} /><span>Help</span></button></div>
     </footer>
+    {recovery && !microphoneHelp && <ErrorRecoveryDialog kind={recovery} retry={retryRecovery} keepWriting={keepWriting} />}
     {microphoneHelp && <MicrophonePermissionHelp retry={retryMicrophone} continueWithout={continueWithoutMic} />}
     {privacy && <PrivacyInfo voiceBusy={voice.busy} close={() => setPrivacy(false)} />}
   </div>

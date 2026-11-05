@@ -42,8 +42,14 @@ The notebook gives the next action above the paper, with dynamic guidance while 
 
 ## Public HTML and production identity
 
-The build pre-renders `App` in its empty landing state through a separate Vite SSR transform with dependency discovery, file watching, HMR, and WebSocket listening disabled. Its cache directory is separate from the local development server. Static output includes the same public invitation every visitor sees; no browser draft, audio, or notebook state enters the build.
+The build pre-renders `SiteRoot` and its session boundary in the empty landing state through a separate Vite SSR transform with dependency discovery, file watching, HMR, and WebSocket listening disabled. Its cache directory is separate from the development server. Static output includes the same public invitation every visitor sees; no browser draft, audio, or notebook state enters the build.
 
 The client hydrates existing production markup and creates a fresh root during development. `useReducedMotion` uses `useSyncExternalStore` with a deterministic server snapshot, then applies the visitor’s preference without a hydration mismatch. The build gate validates the initial HTML, self-hosted assets, production canonical/developer identities, structured data, favicon/share dimensions, and host policy parity.
 
-Search/share metadata and structured data live in `index.html`. The single production URL is `https://whisp.rubangino.ca/`; developer links point to `https://labs.rubangino.ca/`. Hashed bundles are immutable, HTML revalidates, and speech downloads retain their no-store policy. No service worker or offline-PWA behavior is claimed.
+Metadata and linked Person/Organization/WebApplication structured data use `src/lib/site.ts`; the home template is `index.html`. The build also generates static `/about/` and `/how-it-works/` pages with unique canonicals under `https://whisp.rubangino.ca/`. Creator links point to `https://www.rubangino.ca/` and publisher links to `https://labs.rubangino.ca/`. Hashed bundles are immutable, HTML revalidates, and speech downloads retain no-store. No service worker or offline-PWA behavior is claimed.
+
+## Error recovery
+
+`SessionBoundary` remembers only the last committed writing/releasing draft in memory, clears it on other stages, and restores a new writing session after a render failure without automatically starting microphone capture. `SessionHost` keeps the app mounted during offline/async error overlays, pauses audio, stops input, and returns to the same page. Recoverable feature failures use a themed native dialog; microphone permission help takes priority so dialogs do not stack. Error text and stacks are not uploaded or persisted.
+
+`ErrorSpace` and `public/error-space.css` share motion/layout across runtime and static pages. The build emits only numbered root status files for the host; offline/startup recovery remains inside the app/landing HTML. The `/errors/` gallery and feature previews use `import.meta.env.DEV`, are removed from the production bundle/output, and return 404 on the static host. The independent `recovery.js` bootstrap can show pre-rendered recovery when the main bundle or stylesheet fails. Vite preview returns a real HTTP 404 for missing files rather than SPA fallback. See [error coverage and Vercel setup](ERROR_PAGES.md).

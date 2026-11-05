@@ -20,6 +20,7 @@ export function PrivacyInfo({ close, voiceBusy }: { close: () => void; voiceBusy
       <Icon name="lock" size={25} />
       <p className="eyebrow">HELP & YOUR PRIVACY</p>
       <h2 id="privacy-title">Only in this tab.<br />Only for now.</h2>
+      <p><a href="/about/" target="_blank" rel="noreferrer noopener">About Whisp &amp; its developer ↗</a> · <a href="/how-it-works/" target="_blank" rel="noreferrer noopener">How it works &amp; privacy ↗</a></p>
       <h3>Where do my words go?</h3>
       <p>Your writing lives in this tab’s temporary memory. We do not put it in local storage, session storage, cookies, a database, or a file. We don’t send your words or audio to a server or cloud AI.</p>
       <h3>When is it cleared?</h3>

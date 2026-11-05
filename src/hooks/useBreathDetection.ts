@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { isMicrophonePermissionError } from '../lib/microphonePermission'
 import { BreathGate, defaultBreathConfig, gentleBreathConfig, extractFeatures, microphoneError, type BreathSensitivity } from '../lib/breath'
 export type MicStatus = 'inactive' | 'requesting' | 'waiting' | 'calibrating' | 'ready' | 'error'
-interface Options { calibrate: boolean; armed: boolean; sensitivity: BreathSensitivity; onPermissionDenied?: () => void }
+interface Options { calibrate: boolean; armed: boolean; sensitivity: BreathSensitivity; onPermissionDenied?: () => void; onFailure?: () => void }
 export function useBreathDetection(onBreath: () => void, options: Options) {
   const [status, setStatus] = useState<MicStatus>('inactive')
   const [message, setMessage] = useState('')
@@ -32,8 +32,8 @@ export function useBreathDetection(onBreath: () => void, options: Options) {
     dispose()
     const ticket = generation.current
     const current = () => mounted.current && generation.current === ticket
-    const fail = (message: string) => { if (current()) { dispose(); setStatus('error'); setProgress(0); setLevel(0); setMessage(message) } }
-    if (!navigator.mediaDevices?.getUserMedia) { setStatus('error'); setMessage('Microphone listening is unavailable in this browser. You can still use Let it go.'); return }
+    const fail = (message: string, permission = false) => { if (current()) { dispose(); setStatus('error'); setProgress(0); setLevel(0); setMessage(message); if (!permission) settings.current.onFailure?.() } }
+    if (!navigator.mediaDevices?.getUserMedia) { setStatus('error'); setMessage('Microphone listening is unavailable in this browser. You can still use Let it go.'); settings.current.onFailure?.(); return }
     setStatus('requesting'); setMessage('Allow the microphone when your browser asks.'); setProgress(0); setLevel(0)
     try {
       const Audio = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
@@ -86,7 +86,7 @@ export function useBreathDetection(onBreath: () => void, options: Options) {
       resources.current.frame = requestAnimationFrame(tick)
     } catch (error) {
       if (current() && isMicrophonePermissionError(error)) settings.current.onPermissionDenied?.()
-      fail(microphoneError(error))
+      fail(microphoneError(error), isMicrophonePermissionError(error))
     }
   }, [dispose, stop])
   useEffect(() => {

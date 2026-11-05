@@ -117,3 +117,35 @@ Final production-preparation results: **29 unit tests passed; 320 browser checks
 Owner-reviewed follow-up approved for local commit on main: **34 unit tests passed; full browser matrix 380 passed with four intentional real-inference skips out of 384 cases.** The permission dialog passed accessibility checks, draft/focus preservation, breath and voice retries, opt-out through repeat sessions, unsupported permission queries, stale-denial cancellation, and compact/landscape layout checks across six profiles. Compiled recovery passed under production CSP in Chromium, Firefox, and WebKit. The final Safari-specific instructions were also rechecked across all six profiles. Build/typecheck and release artifact checks passed.
 
 These cases simulate browser errors and permission changes. Real iPhone/Android Settings recovery is an owner device check. The owner approved a local commit on main on October 30, 2026. This follow-up has not been pushed or deployed. See [Microphone access and recovery](MICROPHONE_ACCESS.md) for the research, behavior, and manual steps.
+
+## Motion error recovery and search identity — November 3, 2026
+
+Implemented locally for owner review; this update is not committed, pushed, or deployed.
+
+- **34 unit tests passed.** TypeScript, production build, release artifact verification, and whitespace checks passed.
+- **Full regression: 422 passed, four intentional real-inference skips, out of 426 cases** across installed Brave, Chromium, Firefox, WebKit, Pixel emulation, and iPhone emulation.
+- **12 additional cases passed** across the same six profiles for speech-worker retry and simultaneous microphone/sound errors. This brings distinct browser coverage to **434 passed and four intentional skips**. The updated render-recovery focus/sound behavior also passed targeted rechecks in all six profiles.
+- New error checks force a React render failure, async error, offline transition, failed ink snapshot, and audio failure. They verify exact writing preservation, in-memory restoration, input availability, focus, quiet continuation, and absence of draft storage.
+- All 14 error designs passed automated accessibility checks, noindex checks, reduced-motion checks, and overflow checks at 280, 390, and 1440 pixels. About/How it works pages also passed accessibility and canonical/creator checks. Desktop/mobile production screenshots were visually reviewed.
+- Production smoke passed in Chromium, Firefox, and WebKit under the configured CSP. Separate production error checks passed in those engines: no-JS public pages, genuine HTTP 404, static CSS motion, and startup recovery with a blocked compiled script or stylesheet.
+- Compiled local speech rejected silence and recognized the public speech fixture under production CSP with no external requests.
+
+Owner follow-up:
+
+- [ ] Review `/errors/`, `/about/`, and `/how-it-works/` in the local production preview. Review motion with your actual device's reduced-motion setting as well.
+- [ ] After deployment, verify public pages return 200 and a missing URL returns the branded 404 with status 404. Confirm live headers and microphone behavior over HTTPS.
+- [ ] If Enterprise platform error replacement is required, confirm account support and test it with Vercel. A direct `/500.html` preview is not a real platform error test.
+- [ ] Complete Search Console ownership/indexing steps and add Whisp product links to the official portfolio and Labs websites.
+
+Tests simulate failures in isolated profiles. They cannot prove browser-owned network error replacement, real hardware/OS recovery, live Vercel behavior, indexing, or rankings. See [error setup](ERROR_PAGES.md) and [SEO handoff](SEO.md).
+
+## Production preview exclusion — November 5, 2026
+
+The gallery and feature-preview routes are now development-only. Production emits numbered host status documents, retains real in-app/startup recovery, and excludes `/errors/`, `offline.html`, and `startup.html`. About and How it works remain public product/SEO pages. No commit, push, or deployment was performed for this update.
+
+- **34 unit tests and 60 targeted browser checks passed** across Brave, Chromium, Firefox, WebKit, and the two mobile profiles. These cover development gallery links, real recovery/draft behavior, reduced motion, accessibility, responsive layouts, and SEO.
+- Production build/typecheck and artifact checks passed. The gate checks that gallery files/text, docs, tests, source maps, branding, and other development artifacts are absent from `dist/`.
+- Production error verification passed in Chromium, Firefox, and WebKit, including HTTP 404 for removed preview/developer URLs, crawlable public pages without JavaScript, static host errors, and blocked script/stylesheet startup recovery under CSP.
+- The Chromium production writing/release/undo smoke passed without runtime errors, external requests, or saved writing.
+
+The prior full regression record remains above; the full suite was not repeated for this build/routing-only change. Live Vercel status/header checks remain an owner post-deployment action. Use the development server on port 5173 for the design gallery; production preview on port 4173 deliberately returns 404 for it.

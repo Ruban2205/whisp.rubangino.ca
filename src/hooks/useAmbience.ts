@@ -34,6 +34,8 @@ export function useAmbience(scene: SoundScene, listening: boolean, breathCandida
       current.context.onstatechange = () => { if (current.context.state !== 'running' && current.context.state !== 'closed') setPlayback('paused') }
     } catch { dispose(); if (created && created.state !== 'closed') void created.close().catch(() => {}); setPlayback('error') }
   }, [dispose])
+  const pause = useCallback(() => { dispose(); if (preferred.current) setPlayback('paused') }, [dispose])
+  const mute = useCallback(() => { preferred.current = false; setEnabled(false); dispose(); setPlayback('waiting') }, [dispose])
   const toggle = useCallback(() => {
     if (preferred.current && playback !== 'error' && playback !== 'paused') {
       preferred.current = false; setEnabled(false); dispose(); setPlayback('waiting')
@@ -58,5 +60,5 @@ export function useAmbience(scene: SoundScene, listening: boolean, breathCandida
   const playRelease = useCallback((duration?: number) => { if (preferred.current) audio.current?.score.playRelease(duration) }, [])
   const playCompletion = useCallback(() => { if (preferred.current) audio.current?.score.playCompletion() }, [])
   const playInk = useCallback(() => { if (preferred.current) audio.current?.score.playInk() }, [])
-  return { enabled, playback, toggle, start, playRelease, playCompletion, playInk }
+  return { enabled, playback, toggle, mute, pause, start, playRelease, playCompletion, playInk }
 }

@@ -87,7 +87,8 @@ test('hidden tabs stop listening; disconnect errors retain writing', async ({ pa
   await page.getByRole('button', { name: 'Use my breath' }).click()
   await expect(page.getByRole('status', { name: 'Microphone status' })).toContainText('finding the room')
   await page.evaluate(`(${audioControls})().disconnected()`)
-  await expect(page.getByRole('status', { name: 'Microphone status' })).toContainText('disconnected')
+  await expect(page.getByRole('dialog', { name: 'The breeze couldn’t reach us.' })).toBeVisible()
+  await page.getByRole('button', { name: 'Keep writing', exact: true }).click()
   await expect(page.getByRole('textbox')).toHaveValue('These words stay until I am ready.')
 })
 test('empty writing is never released; input feedback and sensitivity are usable', async ({ page }) => {

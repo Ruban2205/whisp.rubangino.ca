@@ -20,7 +20,7 @@ try {
   })
   const response = await page.goto(baseURL)
   expect(response.status()).toBe(200)
-  await expect(page).toHaveTitle('Whisp — Private Online Notebook to Write & Let Go')
+  await expect(page).toHaveTitle('Whisp — Private Online Notebook | Ruban Gino Singh')
   for (const asset of ['/favicon.svg', '/favicon.ico', '/favicon-48.png', '/apple-touch-icon.png', '/icon-192.png', '/icon-512.png', '/site.webmanifest', '/og-image.png', '/robots.txt', '/sitemap.xml']) {
     expect((await page.request.get(`${baseURL}${asset}`)).status()).toBe(200)
   }

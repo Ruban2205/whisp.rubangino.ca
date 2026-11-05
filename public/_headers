@@ -16,3 +16,44 @@
   Cache-Control: public, max-age=0, must-revalidate
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
+
+/403.html
+  X-Robots-Tag: noindex, follow
+  Cache-Control: no-store
+
+/404.html
+  X-Robots-Tag: noindex, follow
+  Cache-Control: no-store
+
+/408.html
+  X-Robots-Tag: noindex, follow
+  Cache-Control: no-store
+
+/429.html
+  X-Robots-Tag: noindex, follow
+  Cache-Control: no-store
+
+/500.html
+  X-Robots-Tag: noindex, follow
+  Cache-Control: no-store
+
+/503.html
+  X-Robots-Tag: noindex, follow
+  Cache-Control: no-store
+
+/504.html
+  X-Robots-Tag: noindex, follow
+  Cache-Control: no-store
+
+/errors/*
+  X-Robots-Tag: noindex, follow
+  Cache-Control: no-store
+
+/recovery.js
+  Cache-Control: public, max-age=0, must-revalidate
+/error-space.css
+  Cache-Control: public, max-age=0, must-revalidate
+/about/*
+  Cache-Control: public, max-age=0, must-revalidate
+/how-it-works/*
+  Cache-Control: public, max-age=0, must-revalidate

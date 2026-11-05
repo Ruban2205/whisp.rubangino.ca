@@ -11,7 +11,7 @@ import { InkRelease } from './InkRelease'
 import { ReleaseControls } from './ReleaseControls'
 import { Icon } from './Icon'
 
-export function NotebookExperience({ state, dispatch, reduced, mic, toggleMic, sensitivity, setSensitivity, voice, startVoice, finishVoice, quote, paperRef, playInk, cacheStatus }: { state: RitualState; dispatch: Dispatch<RitualEvent>; reduced: boolean; mic: BreathDetection; toggleMic: () => void; sensitivity: BreathSensitivity; setSensitivity: (value: BreathSensitivity) => void; voice: VoiceWriting; startVoice: () => void; finishVoice: () => void; quote: SupportiveQuote | null; paperRef: RefObject<HTMLDivElement | null>; playInk: () => void; cacheStatus: CacheClearStatus | 'idle' | 'clearing' }) {
+export function NotebookExperience({ state, dispatch, reduced, mic, toggleMic, sensitivity, setSensitivity, voice, startVoice, finishVoice, quote, paperRef, playInk, cacheStatus, onReleaseFailure }: { state: RitualState; dispatch: Dispatch<RitualEvent>; reduced: boolean; mic: BreathDetection; toggleMic: () => void; sensitivity: BreathSensitivity; setSensitivity: (value: BreathSensitivity) => void; voice: VoiceWriting; startVoice: () => void; finishVoice: () => void; quote: SupportiveQuote | null; paperRef: RefObject<HTMLDivElement | null>; playInk: () => void; cacheStatus: CacheClearStatus | 'idle' | 'clearing'; onReleaseFailure: () => void }) {
   const editor = useRef<HTMLTextAreaElement>(null)
   const heading = useRef<HTMLHeadingElement>(null)
   const [swipeMode, setSwipeMode] = useState(false)
@@ -114,6 +114,6 @@ export function NotebookExperience({ state, dispatch, reduced, mic, toggleMic, s
       <button className="text-button" disabled={mic.status === 'requesting' || mic.status === 'waiting'} onClick={() => void mic.start()}>Recalibrate</button>
       <p>Follow the breathing guide above. Choose Gentle breath for a softer response. If the input meter stays still, check microphone access.</p>
     </div></details>}
-    {state.stage === 'releasing' && editor.current && <InkRelease editor={editor.current} reduced={reduced} onDone={() => dispatch({ type: 'RELEASE_DONE' })} onError={() => { dispatch({ type: 'RELEASE_FAILED' }); setError('The breeze paused. Your words are still here. Please try again.') }} />}
+    {state.stage === 'releasing' && editor.current && <InkRelease editor={editor.current} reduced={reduced} onDone={() => dispatch({ type: 'RELEASE_DONE' })} onError={() => { dispatch({ type: 'RELEASE_FAILED' }); setError('The breeze paused. Your words are still here. Please try again.'); onReleaseFailure() }} />}
   </section>
 }

@@ -84,7 +84,8 @@ test('unsupported microphone and absent devices offer manual fallback', async ({
   await enter(page)
   await page.getByRole('textbox').fill('Still able to let go.')
   await page.getByRole('button', { name: 'Use my breath' }).click()
-  await expect(page.getByRole('status', { name: 'Microphone status' })).toContainText('unavailable in this browser')
+  await expect(page.getByRole('dialog', { name: 'The breeze couldn’t reach us.' })).toBeVisible()
+  await page.getByRole('button', { name: 'Keep writing', exact: true }).click()
   await release(page)
 })
 test('canvas unavailable keeps a usable release fallback', async ({ page }) => {

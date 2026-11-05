@@ -44,7 +44,7 @@ Inline styles are needed for the live breath/swipe progress indicators. The JSON
 - Cache hashed `/assets/` files for a long period with `immutable`.
 - Serve `index.html` with revalidation so releases pick up new asset hashes.
 - Ensure `.woff2`, `.svg`, `.png`, and `.xml` receive appropriate content types.
-- No SPA rewrite is required; the app uses only `/` and no client routes.
+- No SPA rewrite is required. `/about/` and `/how-it-works/` are generated static pages. Keep the output-root `404.html` so missing URLs return the custom page with status 404 rather than the homepage with status 200.
 - Test the production HTTPS microphone permission flow, explicit stop, tab backgrounding, and device disconnect.
 - Confirm no writing or audio requests appear in the Network panel. Hosting access logs are separate; the host may collect IP addresses and request metadata, so review its configuration and retention.
 - Confirm `/og-image.png`, `/favicon.svg`, `/robots.txt`, and `/sitemap.xml` return 200.
@@ -76,7 +76,7 @@ Vercel supports these [project configuration settings and headers](https://verce
 
 ## Release artifact and launch handoff
 
-The build prepares speech assets, compiles the app, pre-renders only its empty public landing state, and runs `verify-release.mjs`. The script verifies crawlable HTML, production identity, icons, sharing image dimensions, sitemap/robots, speech asset presence, and matching security/cache settings. No browser session or user text is involved in pre-rendering.
+The build prepares speech assets, compiles the app, pre-renders its empty public landing, About and How it works pages, generates static error files, and runs `verify-release.mjs`. The script verifies crawlable HTML, developer/company identity, canonicals/noindex, icons, sharing image, sitemap/robots, speech assets, and security/cache settings. No browser session or user text is involved.
 
 1. Import the GitHub repository into your chosen host. For Vercel, the included configuration supplies the build/output settings; select Node 24.
 2. Ensure the build can download the pinned public model. No Hugging Face token is required. Do not run a production build with development dependencies omitted: the compiler and Vite are needed during build.
@@ -85,3 +85,9 @@ The build prepares speech assets, compiles the app, pre-renders only its empty p
 5. Complete [SEO launch verification](SEO.md), including Search Console domain verification and sitemap submission. No ownership-verification token has been fabricated or added.
 
 GitHub Actions validates unit tests and build output only; no deployment credentials or automatic publishing steps are installed. If an existing hosting integration is connected to GitHub externally, its deployment behavior is managed in that service.
+
+## Custom errors on Vercel
+
+The normal static 404 and client-side recovery need no extra environment variables or functions. Leave the generated numbered status HTML files in `dist/`, retain the supplied headers, and avoid a catch-all SPA rewrite. Vercel's own platform error replacement is Enterprise-only; directly opening `/500.html` displays the host document and does not simulate an outage. Follow [Motion error pages and Vercel setup](ERROR_PAGES.md) for the exact setup, plan distinction, supported failures, and post-deploy status checks.
+
+The design gallery is available only with `npm run dev` at `/errors/`. A normal production build excludes its files and client routing, along with the standalone offline/startup demos. Verify that `/errors/` and `/errors/voice/` return 404 after deployment. About and How it works remain public product pages. The build gate rejects development artifacts such as docs, tests, branding files, source maps, and the gallery in the deployable output.

@@ -6,7 +6,7 @@
 
 Whisp is a free, private online notebook for the thoughts you are ready to set down. Write or speak at your own pace, take a comfortable breath, and watch your words drift away. An original supportive note appears when the page clears.
 
-Built by **[Ruban AI Labs](https://labs.rubangino.ca/)**. Production domain: **[whisp.rubangino.ca](https://whisp.rubangino.ca/)**.
+Created by **[Ruban Gino Singh](https://www.rubangino.ca/)** and published by **[Ruban AI Labs](https://labs.rubangino.ca/)**. Production domain: **[whisp.rubangino.ca](https://whisp.rubangino.ca/)**.
 
 ![Whisp's private notebook](docs/preview-notebook.png)
 
@@ -18,6 +18,7 @@ Built by **[Ruban AI Labs](https://labs.rubangino.ca/)**. Production domain: **[
 - **Find a little encouragement.** One of 100 original supportive notes appears after release, with local theme matching and randomized rotation.
 - **Enjoy a quiet atmosphere.** Cosmic journeys, paper-to-light transitions, original ambient music, and gentle wind effects share one sound control.
 - **Use the screen comfortably.** Layouts adapt to phones, tablets, desktop, landscape, and short viewports. Reduced motion, keyboard navigation, accessible controls, and a 20-second restore option are included.
+- **Recover within the same space.** Animated error screens handle connection loss, loading problems, and supported input failures. Recoverable interruptions preserve writing in tab memory where available.
 
 Microphone use is disclosed before entry and can be turned off. Sound starts after interaction and can be muted. Voice typing has a separate first-use explanation and enable action. A blocked microphone request opens a clear settings-help dialog with a retry and a way to keep writing without microphone access; the app does not reload or discard the draft.
 
@@ -66,6 +67,7 @@ With the production preview running:
 
 ```sh
 node scripts/verify-production.mjs
+node scripts/verify-errors.mjs
 node scripts/verify-voice.mjs
 ```
 
@@ -77,7 +79,7 @@ GitHub Actions runs unit tests and the complete production build on pushes to `m
 
 ## Production deployment
 
-The application builds into **`dist/`**, including speech assets and a pre-rendered public homepage. The interactive notebook remains entirely in the browser; pre-rendering never includes user writing or recordings.
+The application builds into **`dist/`**, including speech assets, a pre-rendered homepage, static About/How it works pages, and standalone motion error screens. The interactive notebook remains in the browser; pre-rendering never includes user writing or recordings.
 
 | Setting | Value |
 | --- | --- |
@@ -90,11 +92,13 @@ The application builds into **`dist/`**, including speech assets and a pre-rende
 
 `vercel.json` includes build settings, security headers, immutable hashed-asset caching, and no-store headers for speech downloads. `_headers` supplies equivalents for compatible static hosts. No inference server, API key, or cross-origin model fallback is needed.
 
+Vercel can serve the generated `404.html` for missing pages without an SPA rewrite. Replacing Vercel's own platform error screens requires Enterprise. See [Motion errors and Vercel setup](docs/ERROR_PAGES.md). The design gallery is development-only: run `npm run dev` and open **http://127.0.0.1:5173/errors/**. Production builds exclude the gallery and feature-preview routes; they return 404 in production preview and on the static host.
+
 Choose a hosting plan appropriate to this project’s use and bandwidth. Vercel Hobby eligibility is restricted to personal, non-commercial use; free access for visitors alone does not establish eligibility. See the [deployment guide](docs/DEPLOYMENT.md) for plan details, HTTPS/DNS, and launch checks. Deployment is performed by the owner.
 
 ## Search and sharing
 
-The public landing page is pre-rendered for crawlers and visitors, with production canonical metadata, Open Graph/Twitter cards, WebSite/WebApplication/Organization structured data, robots.txt, sitemap.xml, and SVG/ICO/PNG/Apple icons. No invented reviews, ratings, or search-ranking claims are included.
+The homepage, `/about/`, and `/how-it-works/` deliver crawlable public HTML with unique production canonicals, Open Graph/Twitter cards, and linked Person/Organization/WebSite/WebApplication structured data. Visible creator credits connect Whisp to Ruban Gino Singh, his official portfolio, and Ruban AI Labs. The sitemap lists public pages; host error documents are noindex and development previews are excluded from production. No invented reviews, ratings, or ranking claims are included.
 
 After launch, verify the domain in Google Search Console and submit `https://whisp.rubangino.ca/sitemap.xml`. See [SEO and launch verification](docs/SEO.md).
 
@@ -103,9 +107,10 @@ After launch, verify the domain in Google Search Console and submit `https://whi
 - [Architecture](docs/ARCHITECTURE.md)
 - [Testing and device checklist](docs/TESTING.md)
 - [Microphone access and recovery](docs/MICROPHONE_ACCESS.md)
+- [Motion errors and Vercel setup](docs/ERROR_PAGES.md)
 - [Deployment](docs/DEPLOYMENT.md)
 - [SEO and launch verification](docs/SEO.md)
 - [Feature updates](docs/FEATURE_UPDATES.md)
 - [Third-party licenses and attribution](THIRD_PARTY_NOTICES.md)
 
-**Developer:** [Ruban AI Labs](https://labs.rubangino.ca/) · **Source:** [Ruban2205/whisp.rubangino.ca](https://github.com/Ruban2205/whisp.rubangino.ca)
+**Developer:** [Ruban Gino Singh](https://www.rubangino.ca/) · **Publisher:** [Ruban AI Labs](https://labs.rubangino.ca/) · **Source:** [Ruban2205/whisp.rubangino.ca](https://github.com/Ruban2205/whisp.rubangino.ca)

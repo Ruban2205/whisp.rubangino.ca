@@ -6,12 +6,13 @@ export type VoiceStatus = 'idle' | 'loading' | 'requesting' | 'listening' | 'pro
 interface Job { id: number; audio: Float32Array; sampleRate: number; overlap: boolean }
 interface Capture { context?: AudioContext; stream?: MediaStream; source?: MediaStreamAudioSourceNode; node?: AudioWorkletNode; muted?: GainNode }
 
-export function useVoiceWriting(onWords: (text: string) => void, onPermissionDenied?: () => void) {
+export function useVoiceWriting(onWords: (text: string) => void, onPermissionDenied?: () => void, onFailure?: () => void) {
   const [status, setStatus] = useState<VoiceStatus>('idle')
   const [message, setMessage] = useState('')
   const [level, setLevel] = useState(0)
   const callback = useRef(onWords); callback.current = onWords
   const permissionDenied = useRef(onPermissionDenied); permissionDenied.current = onPermissionDenied
+  const failureCallback = useRef(onFailure); failureCallback.current = onFailure
   const mounted = useRef(true), generation = useRef(0)
   const worker = useRef<Worker | null>(null), capture = useRef<Capture>({})
   const jobs = useRef<Job[]>([]), processing = useRef(false), listening = useRef(false), finishing = useRef(false)
@@ -85,9 +86,9 @@ export function useVoiceWriting(onWords: (text: string) => void, onPermissionDen
     discard()
     const ticket = generation.current
     const current = () => mounted.current && generation.current === ticket
-    const fail = (text: string) => { if (current()) { discard(); setStatus('error'); setMessage(text); setLevel(0) } }
+    const fail = (text: string, permission = false) => { if (current()) { discard(); setStatus('error'); setMessage(text); setLevel(0); if (!permission) failureCallback.current?.() } }
     if (!navigator.mediaDevices?.getUserMedia || !window.AudioWorkletNode || !window.Worker) {
-      setStatus('error'); setMessage('Private voice typing isn’t available in this browser. You can still type your thoughts.'); return
+      setStatus('error'); setMessage('Private voice typing isn’t available in this browser. You can still type your thoughts.'); failureCallback.current?.(); return
     }
     setStatus('loading'); setMessage('Preparing private voice typing. Loading the speech model from this site…')
     try {
@@ -173,7 +174,7 @@ export function useVoiceWriting(onWords: (text: string) => void, onPermissionDen
       setStatus('listening'); setMessage('Listening to your words. Pause naturally; they’ll appear a phrase at a time. English voice typing.')
     } catch (error) {
       if (current() && isMicrophonePermissionError(error)) permissionDenied.current?.()
-      fail(error instanceof DOMException ? microphoneError(error) : 'Private voice typing could not load. Your writing is safe. Please try again or keep typing.')
+      fail(error instanceof DOMException ? microphoneError(error) : 'Private voice typing could not load. Your writing is safe. Please try again or keep typing.', isMicrophonePermissionError(error))
     }
   }, [discard, enqueue])
   useEffect(() => {
