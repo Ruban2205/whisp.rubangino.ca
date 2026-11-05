@@ -57,3 +57,15 @@
   Cache-Control: public, max-age=0, must-revalidate
 /how-it-works/*
   Cache-Control: public, max-age=0, must-revalidate
+
+/LICENSE.txt
+  X-Robots-Tag: noindex, follow
+  Cache-Control: public, max-age=0, must-revalidate
+
+/NOTICE.txt
+  X-Robots-Tag: noindex, follow
+  Cache-Control: public, max-age=0, must-revalidate
+
+/licenses/*
+  X-Robots-Tag: noindex, follow
+  Cache-Control: public, max-age=0, must-revalidate

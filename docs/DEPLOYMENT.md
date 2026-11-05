@@ -91,3 +91,7 @@ GitHub Actions validates unit tests and build output only; no deployment credent
 The normal static 404 and client-side recovery need no extra environment variables or functions. Leave the generated numbered status HTML files in `dist/`, retain the supplied headers, and avoid a catch-all SPA rewrite. Vercel's own platform error replacement is Enterprise-only; directly opening `/500.html` displays the host document and does not simulate an outage. Follow [Motion error pages and Vercel setup](ERROR_PAGES.md) for the exact setup, plan distinction, supported failures, and post-deploy status checks.
 
 The design gallery is available only with `npm run dev` at `/errors/`. A normal production build excludes its files and client routing, along with the standalone offline/startup demos. Verify that `/errors/` and `/errors/voice/` return 404 after deployment. About and How it works remain public product pages. The build gate rejects development artifacts such as docs, tests, branding files, source maps, and the gallery in the deployable output.
+
+## License distribution
+
+The build includes `LICENSE.txt`, `NOTICE.txt`, and `licenses/` as intentional public legal files. They preserve the project license, Ruban AI Labs/Ruban Gino Singh attribution, and upstream notices. Their host rules use noindex and revalidation. Keep these files when uploading `dist/`; they are part of the distribution rather than developer previews. See [licensing and attribution](LICENSING.md).

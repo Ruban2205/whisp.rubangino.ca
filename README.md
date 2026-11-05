@@ -104,6 +104,7 @@ After launch, verify the domain in Google Search Console and submit `https://whi
 
 ## Project documentation
 
+- [License and reuse guidance](docs/LICENSING.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Testing and device checklist](docs/TESTING.md)
 - [Microphone access and recovery](docs/MICROPHONE_ACCESS.md)
@@ -114,3 +115,13 @@ After launch, verify the domain in Google Search Console and submit `https://whi
 - [Third-party licenses and attribution](THIRD_PARTY_NOTICES.md)
 
 **Developer:** [Ruban Gino Singh](https://www.rubangino.ca/) · **Publisher:** [Ruban AI Labs](https://labs.rubangino.ca/) · **Source:** [Ruban2205/whisp.rubangino.ca](https://github.com/Ruban2205/whisp.rubangino.ca)
+
+## License and attribution
+
+Copyright 2026 **Ruban Gino Singh, operating as Ruban AI Labs** (a registered sole proprietorship).
+
+Project-authored materials are available under the **[Apache License 2.0](LICENSE)** to the extent of the rights held by the licensor and contributors. Free and commercial reuse are permitted under its terms. Redistributors must preserve applicable license/copyright notices, retain the publisher/developer attribution in [NOTICE](NOTICE) as required by the license, and identify modified files. A permanent website footer credit is not an additional requirement.
+
+No patent, registered intellectual-property right, or exclusive ownership of the idea is claimed. Apache 2.0 does not require owning a patent; its patent grant covers only relevant rights a contributor can license. Inspiration from other resources does not give permission to copy their protected code, text, or artwork.
+
+Third-party libraries, fonts, speech models, and fixtures retain their own licenses. The license does not grant general trademark rights or imply endorsement. See [licensing and attribution guidance](docs/LICENSING.md) and [third-party notices](THIRD_PARTY_NOTICES.md).

@@ -69,5 +69,6 @@
       "name": "Ruban AI Labs",
       "url": "https://labs.rubangino.ca/"
     }
-  ]
+  ],
+  "license": "Apache-2.0"
 }

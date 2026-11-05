@@ -155,3 +155,19 @@ The prior full regression record remains above; the full suite was not repeated 
 Release `1377032` deployed through the existing GitHub/Vercel integration. Live public pages returned 200, removed preview paths and a missing URL returned branded 404, and WASM had the expected MIME/no-store headers. A browser check then identified Cloudflare-injected analytics being blocked by CSP; the bootstrap incorrectly treated that optional script failure as a failed app startup.
 
 The bootstrap now limits resource failures to same-origin application modules/stylesheets. The CSP remains unchanged and external analytics stays blocked. Local compiled regression checks passed in Chromium, Firefox, and WebKit with an injected analytics script: the native CSP event confirms blocking, the homepage remains usable, and writing works. Genuine first-party script/stylesheet failure checks still show recovery. Build/typecheck and release checks passed. Live browser verification is repeated after the hotfix deploys; DNS/TLS/browser-owned errors remain outside app control.
+
+Hotfix `ae24821` deployed successfully through Vercel. A normal live browser session then passed healthy startup, writing, release, restore, no local/session draft storage, and no JavaScript-exception checks. Cloudflare's optional analytics remains blocked by the unchanged CSP.
+
+## License draft verification — November 5, 2026
+
+The unmodified Apache 2.0 license was downloaded from the Apache Software Foundation and its SHA-256 verified as `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`. NOTICE credits Ruban AI Labs and Ruban Gino Singh; package and lockfile SPDX metadata agree.
+
+Build/typecheck and the extended release gate passed. The static distribution preserves LICENSE/NOTICE and all six upstream license texts byte-for-byte. A local HTTP check confirmed the legal URLs return 200 with matching content, the third-party notice links use the distributed paths, and `/errors/` still returns 404. Legal files have noindex/revalidation host rules. There are no UI/dependency changes requiring a new full browser matrix. License changes are prepared locally for review, not published by this draft.
+
+## Licensing refinement for publication — November 5, 2026
+
+The owner authorized publication and clarified Ruban AI Labs is a sole proprietorship. Notices identify **Ruban Gino Singh, operating as Ruban AI Labs**, limit the offer to rights held by the licensor/contributors, and make no patent/IP-registration or exclusive-idea claims. Apache 2.0 remains unmodified. The guide explains the public-repository context, independent inspiration, third-party permissions, and limits of a license as legal assurance.
+
+The license inventory now includes the full React/React DOM MIT text and ONNX Runtime third-party notices from its pinned source revision, bringing retained upstream files to eight. Vite emits the main bundle's dependency license report; the speech worker's three bundled package owners were inspected and are covered by the retained Transformers.js/ONNX notices. This checks identified materials and distributions, not all possible third-party rights or patent claims.
+
+The final production build/typecheck and release checks passed, including exact upstream-file preservation, the corrected sole-proprietor notice, package/lockfile SPDX metadata, bundled dependency notices, and absence of preview routes. A separate integrity check confirmed LICENSE remains the unmodified official Apache 2.0 text and the legal-file response rules are noindex/revalidated. This documentation/packaging update does not change application behavior; no new full UI regression run was needed. No local server was running at publication preparation.

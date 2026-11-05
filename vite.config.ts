@@ -28,6 +28,7 @@ export default defineConfig({
       })
     },
   }],
+  build: { license: { fileName: 'licenses/BUNDLED_DEPENDENCIES.md' } },
   worker: { format: 'es' },
   optimizeDeps: { include: ['@huggingface/transformers'] },
   server: { host: '127.0.0.1', port: 5173, strictPort: true },

@@ -4,6 +4,20 @@ import path from 'node:path'
 
 const root = 'dist', origin = 'https://whisp.rubangino.ca'
 const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
+const metadata = JSON.parse(await fs.readFile('package.json', 'utf8'))
+const lock = JSON.parse(await fs.readFile('package-lock.json', 'utf8'))
+assert.equal(metadata.license, 'Apache-2.0'); assert.equal(lock.packages[''].license, metadata.license)
+for (const [source, output] of [['LICENSE', 'LICENSE.txt'], ['NOTICE', 'NOTICE.txt']]) {
+  assert.deepEqual(await fs.readFile(path.join(root, output)), await fs.readFile(source), `Distribution must preserve ${source}`)
+}
+const notice = await fs.readFile('NOTICE', 'utf8')
+assert.match(notice, /Copyright 2026 Ruban Gino Singh, operating as Ruban AI Labs/)
+assert.match(await fs.readFile('LICENSE', 'utf8'), /Version 2\.0, January 2004/)
+const thirdParty = await fs.readFile(path.join(root, 'licenses/THIRD_PARTY_NOTICES.md'), 'utf8')
+assert.match(thirdParty, /React and React DOM/); assert.match(thirdParty, /Transformers\.js/); assert.match(thirdParty, /upstream\/caveat-OFL\.txt/)
+for (const file of await fs.readdir('docs/licenses')) assert.deepEqual(await fs.readFile(path.join(root, 'licenses/upstream', file)), await fs.readFile(path.join('docs/licenses', file)), `Preserve upstream license: ${file}`)
+const bundledNotices = await fs.readFile(path.join(root, 'licenses/BUNDLED_DEPENDENCIES.md'), 'utf8')
+assert.match(bundledNotices, /react-dom/); assert.match(bundledNotices, /Permission is hereby granted/)
 assert.equal((html.match(/<h1[\s>]/g) || []).length, 1, 'Landing content must exist once in the delivered HTML')
 assert.match(html, /A private notebook to write, breathe, and let go\./)
 assert.match(html, /Enter your space/)
