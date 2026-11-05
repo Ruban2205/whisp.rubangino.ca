@@ -75,7 +75,7 @@ Set `WHISP_BROWSER=firefox` or `WHISP_BROWSER=webkit` to run the production smok
 
 The checks cover production hydration/security policy, a readable homepage without JavaScript, release/restore, metadata, asset responses, storage, silence rejection, and real local recognition of a public speech fixture. For installed Brave, set `WHISP_BRAVE_EXECUTABLE` to its executable path when running Playwright. Browser tests use isolated profiles.
 
-GitHub Actions runs unit tests and the complete production build on pushes to `main` and pull requests. It does not deploy. Physical microphone, actual phone, virtual-keyboard, and assistive-technology checks remain part of manual release validation. See [Testing](docs/TESTING.md).
+GitHub Actions runs unit tests and the complete production build on pushes to `main` and pull requests. Production deployments use Vercel's repository integration. Physical microphone, actual phone, virtual-keyboard, and assistive-technology checks remain part of manual release validation.
 
 ## Production deployment
 
@@ -92,29 +92,13 @@ The application builds into **`dist/`**, including speech assets, a pre-rendered
 
 `vercel.json` includes build settings, security headers, immutable hashed-asset caching, and no-store headers for speech downloads. `_headers` supplies equivalents for compatible static hosts. No inference server, API key, or cross-origin model fallback is needed.
 
-Vercel can serve the generated `404.html` for missing pages without an SPA rewrite. Replacing Vercel's own platform error screens requires Enterprise. See [Motion errors and Vercel setup](docs/ERROR_PAGES.md). The design gallery is development-only: run `npm run dev` and open **http://127.0.0.1:5173/errors/**. Production builds exclude the gallery and feature-preview routes; they return 404 in production preview and on the static host.
+The build includes a custom `404.html` for missing pages. Production builds exclude development galleries, feature-preview routes, test reports, and internal documentation. License and attribution files are included as intentional public legal files.
 
-Choose a hosting plan appropriate to this project’s use and bandwidth. Vercel Hobby eligibility is restricted to personal, non-commercial use; free access for visitors alone does not establish eligibility. See the [deployment guide](docs/DEPLOYMENT.md) for plan details, HTTPS/DNS, and launch checks. Deployment is performed by the owner.
+Use HTTPS for microphone features and select a hosting plan appropriate to the project's business use and speech-download bandwidth.
 
 ## Search and sharing
 
 The homepage, `/about/`, and `/how-it-works/` deliver crawlable public HTML with unique production canonicals, Open Graph/Twitter cards, and linked Person/Organization/WebSite/WebApplication structured data. Visible creator credits connect Whisp to Ruban Gino Singh, his official portfolio, and Ruban AI Labs. The sitemap lists public pages; host error documents are noindex and development previews are excluded from production. No invented reviews, ratings, or ranking claims are included.
-
-After launch, verify the domain in Google Search Console and submit `https://whisp.rubangino.ca/sitemap.xml`. See [SEO and launch verification](docs/SEO.md).
-
-## Project documentation
-
-- [License and reuse guidance](docs/LICENSING.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Testing and device checklist](docs/TESTING.md)
-- [Microphone access and recovery](docs/MICROPHONE_ACCESS.md)
-- [Motion errors and Vercel setup](docs/ERROR_PAGES.md)
-- [Deployment](docs/DEPLOYMENT.md)
-- [SEO and launch verification](docs/SEO.md)
-- [Feature updates](docs/FEATURE_UPDATES.md)
-- [Third-party licenses and attribution](THIRD_PARTY_NOTICES.md)
-
-**Developer:** [Ruban Gino Singh](https://www.rubangino.ca/) · **Publisher:** [Ruban AI Labs](https://labs.rubangino.ca/) · **Source:** [Ruban2205/whisp.rubangino.ca](https://github.com/Ruban2205/whisp.rubangino.ca)
 
 ## License and attribution
 
@@ -124,4 +108,4 @@ Project-authored materials are available under the **[Apache License 2.0](LICENS
 
 No patent, registered intellectual-property right, or exclusive ownership of the idea is claimed. Apache 2.0 does not require owning a patent; its patent grant covers only relevant rights a contributor can license. Inspiration from other resources does not give permission to copy their protected code, text, or artwork.
 
-Third-party libraries, fonts, speech models, and fixtures retain their own licenses. The license does not grant general trademark rights or imply endorsement. See [licensing and attribution guidance](docs/LICENSING.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
+Third-party libraries, fonts, speech models, and fixtures retain their own licenses. The license does not grant general trademark rights or imply endorsement. See [LICENSE](LICENSE), [NOTICE](NOTICE), and [third-party notices](THIRD_PARTY_NOTICES.md) for the applicable terms and attribution.
